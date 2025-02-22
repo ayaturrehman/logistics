@@ -24,14 +24,28 @@ jobs:
       run: |
         ssh -oHostKeyAlgorithms=+ssh-dss -p 21098 ${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }} << 'EOF'
           cd ${{ secrets.CPANEL_PATH }}
-          git pull origin main || { echo "Git pull failed"; exit 1; }
+
+          echo "Checking for unstaged changes..."
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "Stashing local changes..."
+            git stash
+          fi
+
+          echo "Pulling latest code from GitHub..."
+          git pull origin main --rebase || { echo "Git pull failed"; exit 1; }
+
+          echo "Installing dependencies..."
           composer install --no-interaction --prefer-dist --optimize-autoloader || { echo "Composer install failed"; exit 1; }
+
+          echo "Running migrations..."
           php artisan migrate --force || { echo "Migration failed"; exit 1; }
+
           php artisan config:clear
           php artisan cache:clear
           php artisan config:cache
           php artisan route:cache
           php artisan queue:restart
+
           echo "Deployment completed successfully!"
         EOF
       env:
