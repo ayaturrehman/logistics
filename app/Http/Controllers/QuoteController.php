@@ -162,10 +162,9 @@ class QuoteController extends Controller
             $quote->save();
 
             return response()->json([
+                'success' => true,
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
-                'customer' => $customer,
-                'user' => $customer->user
             ], 201);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
