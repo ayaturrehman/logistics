@@ -61,7 +61,7 @@ class QuoteController extends Controller
      */
     public function show($id)
     {
-        return response()->json(Quote::with(['customer', 'vehicleType'])->findOrFail($id));
+        return response()->json(Quote::with(['customer.user', 'vehicleType'])->findOrFail($id));
     }
 
     /**
