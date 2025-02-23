@@ -42,7 +42,7 @@ class CustomerController extends Controller
                 'role'     => 'driver',
             ]);
 
-            $driver = Customer::create([
+            $customer = Customer::create([
                 'user_id'          => $user->id, // Link to created user
                 'business_id'      => getUserBusinessId(), // Automatically set in Request
                 'phone'            => $request->phone,
@@ -56,7 +56,7 @@ class CustomerController extends Controller
 
             return response()->json([
                 'message' => 'Customer created successfully',
-                'driver'  => $driver,
+                'driver'  => $customer,
                 'user'    => $user,
             ], 201);
         } catch (\Exception $e) {

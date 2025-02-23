@@ -25,6 +25,7 @@ Route::get('/sanctum/csrf-cookie', function (Request $request) {
 });
 
 
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('businesses', BusinessController::class);
     Route::apiResource('customers', CustomerController::class);
@@ -34,3 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('fares', FareController::class);
     Route::apiResource('quotes', QuoteController::class);
 });
+
+Route::post('vehiclerate', [VehicleTypeController::class, 'getQuotes']);
+Route::post('quotes', [QuoteController::class, 'storewebsite']);
+

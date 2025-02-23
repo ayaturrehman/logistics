@@ -96,18 +96,23 @@ class VehicleTypeController extends Controller
         $vehicleTypes = VehicleType::with('fare')->get();
 
         $quotes = [];
-        $totalFare = 0;
+
         foreach ($vehicleTypes as $vehicle) {
-            $totalFare = $vehicle->fare->base_fare + ($vehicle->fare->per_mile_rate * $request->estimated_distance);
-            $quotes[] = [
-                'id' => $vehicle->id,
-                'per_mile_rate' => $vehicle->fare->per_mile_rate,
-                'base_fare' => $vehicle->fare->base_fare,
-                'vehicle_type' => $vehicle->name,
-                'total_fare' => round($totalFare, 2),
-                // 'miles' => $request->estimated_distance,
-            ];
+            if ($vehicle->fare && ($vehicle->fare->base_fare > 0 || $vehicle->fare->per_mile_rate > 0)) {
+                $totalFare = $vehicle->fare->base_fare + ($vehicle->fare->per_mile_rate * $request->estimated_distance);
+
+                $quotes[] = [
+                    'id' => $vehicle->id,
+                    'per_mile_rate' => $vehicle->fare->per_mile_rate,
+                    'base_fare' => $vehicle->fare->base_fare,
+                    'vehicle_type' => $vehicle->name,
+                    'total_fare' => round($totalFare, 2),
+                ];
+            }
         }
+
+        return response()->json(['quotes' => $quotes]);
+
 
         return response()->json(['quotes' => $quotes], 200);
     }

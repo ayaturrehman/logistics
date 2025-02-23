@@ -12,7 +12,7 @@ if (!function_exists('getUserBusinessId')) {
     function getUserBusinessId()
     {
         if (!Auth::check()) {
-            return null; // No authenticated user
+            return 1; 
         }
 
         $business = Business::where('owner_id', Auth::id())->first();
