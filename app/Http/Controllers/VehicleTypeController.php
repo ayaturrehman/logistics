@@ -6,6 +6,7 @@ use App\Http\Requests\StoreVehicleTypeRequest;
 use App\Http\Requests\UpdateVehicleTypeRequest;
 use App\Models\VehicleType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class VehicleTypeController extends Controller
 {
@@ -85,24 +86,26 @@ class VehicleTypeController extends Controller
     public function getQuotes(Request $request)
     {
 
-        // $validator = Validator::make($request->all(), [
-        //     // 'pickup_location' => 'required|string',
-        //     // 'dropoff_location' => 'required|string',
-        //     // 'miles' => 'required|numeric|min:0',
-        //     // 'minutes' => 'required|numeric|min:0',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            // 'pickup_location' => 'required|string',
+            // 'dropoff_location' => 'required|string',
+            'estimated_distance' => 'required|numeric|min:0',
+            // 'minutes' => 'required|numeric|min:0',
+        ]);
 
         $vehicleTypes = VehicleType::with('fare')->get();
 
         $quotes = [];
         $totalFare = 0;
         foreach ($vehicleTypes as $vehicle) {
-            $totalFare = $vehicle->fare->base_fare + ($vehicle->fare->per_mile_rate * $request->miles);
+            $totalFare = $vehicle->fare->base_fare + ($vehicle->fare->per_mile_rate * $request->estimated_distance);
             $quotes[] = [
+                'id' => $vehicle->id,
                 'per_mile_rate' => $vehicle->fare->per_mile_rate,
                 'base_fare' => $vehicle->fare->base_fare,
                 'vehicle_type' => $vehicle->name,
-                'total_fare' => round($totalFare, 2)
+                'total_fare' => round($totalFare, 2),
+                // 'miles' => $request->estimated_distance,
             ];
         }
 

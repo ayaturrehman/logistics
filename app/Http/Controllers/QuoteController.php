@@ -31,8 +31,19 @@ class QuoteController extends Controller
     public function store(StoreQuoteRequest $request)
     {
         $validated = $request->validated();
-        $estimatedFare = FareCalculationService::calculateFare($validated['vehicle_type_id'], $validated['estimated_distance']);
-        $quote = Quote::create(array_merge($validated, ['estimated_fare' => $estimatedFare]));
+        $estimatedFare = FareCalculationService::calculateFare($validated['vehicle_type'], $validated['estimated_distance']);
+        $quote = new Quote();
+
+        $quote->business_id             = getUserBusinessId();
+        $quote->customer_id             = $request->customer_id;
+        $quote->vehicle_type_id         = $request->vehicle_type;
+        $quote->pickup_locations        = $request->pickup_location;
+        // $quote->stops                   = $request;
+        $quote->dropoff_locations       = $request->dropoff_location;
+        $quote->estimated_distance      = $request->estimated_distance;
+        $quote->estimated_fare          = $estimatedFare;
+        $quote->status                  = 'pending';
+        $quote->save();
 
         return response()->json([
             'message' => 'Quote created successfully',

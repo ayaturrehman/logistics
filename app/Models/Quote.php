@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Quote extends Model
 {
-    use HasFactory, BusinessScope;
+    use HasFactory;
 
     protected $fillable = [
         'business_id',

@@ -11,7 +11,7 @@ class StoreQuoteRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,22 +22,21 @@ class StoreQuoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'business_id' => 'required|exists:businesses,id',
-            'customer_id' => 'required|exists:customers,id',
-            'vehicle_type_id' => 'required|exists:vehicle_types,id',
-            'pickup_locations' => 'required|array|min:1',
-            'pickup_locations.*.text' => 'required|string',
-            'pickup_locations.*.latitude' => 'required|numeric',
-            'pickup_locations.*.longitude' => 'required|numeric',
-            'stops' => 'nullable|array',
-            'stops.*.text' => 'required|string',
-            'stops.*.latitude' => 'required|numeric',
-            'stops.*.longitude' => 'required|numeric',
-            'dropoff_locations' => 'required|array|min:1',
-            'dropoff_locations.*.text' => 'required|string',
-            'dropoff_locations.*.latitude' => 'required|numeric',
-            'dropoff_locations.*.longitude' => 'required|numeric',
-            'estimated_distance' => 'required|numeric|min:1',
+            'customer_id'                   => 'required|exists:customers,id',
+            'vehicle_type'                  => 'required|exists:vehicle_types,id',
+            'pickup_location'               => 'required|array|min:1',
+            'pickup_location.text'          => 'required|string',
+            'pickup_location.latitude'      => 'required|numeric',
+            'pickup_location.longitude'     => 'required|numeric',
+            'stops'                         => 'nullable|array',
+            'stops.*.text'                  => 'required|string',
+            'stops.*.latitude'              => 'required|numeric',
+            'stops.*.longitude'             => 'required|numeric',
+            'dropoff_location'              => 'required|array|min:1',
+            'dropoff_location.text'         => 'required|string',
+            'dropoff_location.latitude'     => 'required|numeric',
+            'dropoff_location.longitude'    => 'required|numeric',
+            'estimated_distance'            => 'required|numeric|min:1',
         ];
     }
 }
