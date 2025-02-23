@@ -151,14 +151,14 @@ class QuoteController extends Controller
 
             // Create the quote
             $quote = new Quote();
-            $quote->business_id = getUserBusinessId();
-            $quote->customer_id = $customer->id;
-            $quote->vehicle_type_id = $validated['vehicle_type'];
-            $quote->pickup_locations = json_encode($validated['pickup_location']);
-            $quote->dropoff_locations = json_encode($validated['dropoff_location']);
-            $quote->estimated_distance = $validated['estimated_distance'];
-            $quote->estimated_fare = $estimatedFare;
-            $quote->status = 'pending';
+            $quote->business_id         = getUserBusinessId();
+            $quote->customer_id         = $customer->id;
+            $quote->vehicle_type_id     = $validated['vehicle_type'];
+            $quote->pickup_locations    = $validated['pickup_location'];
+            $quote->dropoff_locations   = $validated['dropoff_location'];
+            $quote->estimated_distance  = $validated['estimated_distance'];
+            $quote->estimated_fare      = $estimatedFare;
+            $quote->status              = 'pending';
             $quote->save();
 
             return response()->json([
@@ -167,7 +167,6 @@ class QuoteController extends Controller
                 'customer' => $customer,
                 'user' => $customer->user
             ], 201);
-            
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
