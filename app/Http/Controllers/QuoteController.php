@@ -106,6 +106,7 @@ class QuoteController extends Controller
                 'email'                 => 'required|email|max:255',
                 'phone'                 => 'required|string|max:20',
                 'good_type'             => 'required|exists:goods_types,id',
+                'datetime'              => 'nullable',
                 'transport_type'        => 'nullable|exists:transport_types,id',
                 'address'               => 'nullable|string|max:255',
                 'city'                  => 'nullable|string|max:100',
@@ -156,9 +157,12 @@ class QuoteController extends Controller
             $quote->business_id         = getUserBusinessId();
             $quote->customer_id         = $customer->id;
             $quote->vehicle_type_id     = $validated['vehicle_type'];
+            $quote->pickup_time         = $validated['datetime'];
             $quote->pickup_locations    = $validated['pickup_locations'];
             $quote->dropoff_locations   = $validated['dropoff_locations'];
             $quote->estimated_distance  = $validated['estimated_distance'];
+            $quote->goods_type_id       = $validated['good_type'];
+            $quote->transport_type_id   = $validated['transport_type'];
             $quote->estimated_fare      = $estimatedFare;
             $quote->status              = 'pending';
             $quote->save();
