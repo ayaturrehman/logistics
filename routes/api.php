@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FareController;
+use App\Http\Controllers\GoodsTypeController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\TransportTypeController;
 use App\Http\Controllers\VehicleTypeController;
 
 Route::get('/user', function (Request $request) {
@@ -37,5 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('vehiclerate', [VehicleTypeController::class, 'getQuotes']);
-Route::post('quotes', [QuoteController::class, 'storewebsite']);
+Route::post('quotesstore', [QuoteController::class, 'storewebsite']);
 
+Route::get('goods-types', [GoodsTypeController::class, 'index']);
+Route::get('transport-types', [TransportTypeController::class, 'index']);

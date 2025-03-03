@@ -20,6 +20,9 @@ class Quote extends Model
         'estimated_distance',
         'estimated_fare',
         'status',
+        'pickup_time',
+        'goods_type_id',
+        'transport_type_id',
     ];
 
     protected $casts = [
@@ -37,4 +40,10 @@ class Quote extends Model
     {
         return $this->belongsTo(VehicleType::class);
     }
+
+    public  function goodTypes()
+    {
+        return $this->belongsTo(GoodsType::class, 'goods_type_id', 'id');
+    }
+    
 }

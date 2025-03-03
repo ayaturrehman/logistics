@@ -19,7 +19,7 @@ class QuoteController extends Controller
      */
     public function index()
     {
-        return response()->json(Quote::with(['customer', 'vehicleType'])->get());
+        return response()->json(Quote::with(['customer', 'vehicleType'])->latest()->get());
     }
 
     /**
@@ -61,7 +61,7 @@ class QuoteController extends Controller
      */
     public function show($id)
     {
-        return response()->json(Quote::with(['customer.user', 'vehicleType'])->findOrFail($id));
+        return response()->json(Quote::with(['customer.user', 'vehicleType','goodTypes.tranportTypes'])->findOrFail($id));
     }
 
     /**
@@ -102,18 +102,20 @@ class QuoteController extends Controller
         try {
             // Validate the input
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|max:255',
-                'phone' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:255',
-                'city' => 'nullable|string|max:100',
-                'state' => 'nullable|string|max:100',
-                'postal_code' => 'nullable|string|max:20',
-                'country' => 'nullable|string|max:100',
-                'vehicle_type' => 'required|exists:vehicle_types,id',
-                'pickup_location' => 'required|array',
-                'dropoff_location' => 'required|array',
-                'estimated_distance' => 'required|numeric|min:0.1',
+                'name'                  => 'required|string|max:255',
+                'email'                 => 'required|email|max:255',
+                'phone'                 => 'required|string|max:20',
+                'good_type'             => 'required|exists:goods_types,id',
+                'transport_type'        => 'nullable|exists:transport_types,id',
+                'address'               => 'nullable|string|max:255',
+                'city'                  => 'nullable|string|max:100',
+                'state'                 => 'nullable|string|max:100',
+                'postal_code'           => 'nullable|string|max:20',
+                'country'               => 'nullable|string|max:100',
+                'vehicle_type'          => 'required|exists:vehicle_types,id',
+                'pickup_locations'      => 'required|array',
+                'dropoff_locations'     => 'required|array',
+                'estimated_distance'    => 'required|numeric|min:0.1',
             ]);
 
             // Check if customer exists based on email
@@ -154,8 +156,8 @@ class QuoteController extends Controller
             $quote->business_id         = getUserBusinessId();
             $quote->customer_id         = $customer->id;
             $quote->vehicle_type_id     = $validated['vehicle_type'];
-            $quote->pickup_locations    = $validated['pickup_location'];
-            $quote->dropoff_locations   = $validated['dropoff_location'];
+            $quote->pickup_locations    = $validated['pickup_locations'];
+            $quote->dropoff_locations   = $validated['dropoff_locations'];
             $quote->estimated_distance  = $validated['estimated_distance'];
             $quote->estimated_fare      = $estimatedFare;
             $quote->status              = 'pending';

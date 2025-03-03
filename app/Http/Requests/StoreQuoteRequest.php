@@ -23,6 +23,9 @@ class StoreQuoteRequest extends FormRequest
     {
         return [
             'customer_id'                   => 'required|exists:customers,id',
+            'good_type'                     => 'required|exists:goods_types,id',
+            'transport_type'                 => 'nullable|exists:transport_types,id',
+            'customer_id'                   => 'required|exists:customers,id',
             'vehicle_type'                  => 'required|exists:vehicle_types,id',
             'pickup_location'               => 'required|array|min:1',
             'pickup_location.text'          => 'required|string',

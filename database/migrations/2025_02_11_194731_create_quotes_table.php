@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->integer('business_id');
             $table->integer('customer_id');
-            $table->integer('vehicle_type_id');
+            $table->integer('vehicle_type_id'); // 
+            $table->integer('goods_type_id')->default(9); // Default to 'Vehicles'
+            $table->integer('transport_type_id')->nullable()->comment('car, van, truck, etc');
+            $table->timestamp('pickup_time')->nullable();
             $table->json('pickup_locations'); // Array of pickup points (text, latitude, longitude)
             $table->json('stops')->nullable(); // Optional stops before drop-off (text, latitude, longitude)
             $table->json('dropoff_locations'); // Drop-off points (text, latitude, longitude)
