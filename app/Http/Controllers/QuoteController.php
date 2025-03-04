@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreQuoteRequest;
 use App\Http\Requests\UpdateQuoteRequest;
+use App\Mail\QuoteCreated;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\User;
 use App\Services\FareCalculationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class QuoteController extends Controller
@@ -61,7 +63,7 @@ class QuoteController extends Controller
      */
     public function show($id)
     {
-        return response()->json(Quote::with(['customer.user', 'vehicleType','goodTypes.tranportTypes'])->findOrFail($id));
+        return response()->json(Quote::with(['customer.user', 'vehicleType', 'goodTypes.tranportTypes'])->findOrFail($id));
     }
 
     /**
@@ -163,9 +165,19 @@ class QuoteController extends Controller
             $quote->estimated_distance  = $validated['estimated_distance'];
             $quote->goods_type_id       = $validated['good_type'];
             $quote->transport_type_id   = $validated['transport_type'];
+            // $quote->notes               = $validated['notes'];
             $quote->estimated_fare      = $estimatedFare;
             $quote->status              = 'pending';
             $quote->save();
+
+            // Generate payment link
+            // Temporary demo payment link
+            $paymentLink = "https://demo-payment.example.com/pay/" . $quote->id;
+
+
+            // Send email to customer
+            Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
+            // Mail::to('ayatuk@yahoo.com')->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
                 'success' => true,
