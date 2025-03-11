@@ -282,6 +282,7 @@ class QuoteController extends Controller
             $quote->payment_status              = $validated['payment_status'] ?? 'pending';
             $quote->save();
 
+            
             // Generate payment link
             $paymentLink = "https://demo-payment.example.com/pay/" . $quote->id;
             // Send email to customer
