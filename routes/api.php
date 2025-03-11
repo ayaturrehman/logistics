@@ -54,3 +54,8 @@ Route::get('/payment/success', function (Request $request) {
 Route::get('/payment/cancel', function (Request $request) {
     return view('payment.cancel');
 })->name('payment.cancel');
+
+
+Route::get('/payments', function (Request $request) {
+    return $payload = @file_get_contents('php://input');
+})->name('payment.failed');

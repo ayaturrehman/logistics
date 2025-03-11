@@ -89,16 +89,31 @@ class StripePaymentController extends Controller
     {
         // \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
         \Stripe\Stripe::setApiKey('sk_test_51R1PNpB6SOReBrzH0zajlH8TmVaurU8RFi9HO4HNrQ9GIB25mrpdPtL2f0LjxsAgzFgh6tfdgHyoJuvu9vLBAIos00P64LKP1x');
+        $payload = @file_get_contents('php://input');
+        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
+        $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
+        $endpoint_secret = 'whsec_c7f5c001e341c36d64d4a4c64d639a5fe0005a0af00652649ef68c62c157e86c';
+
+       
+        try {
+            $event = \Stripe\Event::constructFrom(
+                json_decode($payload, true)
+            );
+        } catch (\UnexpectedValueException $e) {
+            // Invalid payload
+            echo '⚠️  Webhook error while parsing basic request.';
+            http_response_code(400);
+            exit();
+        }
+
         try {
 
-            $payload = @file_get_contents('php://input');
-            $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
-            $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
-            $endpoint_secret = 'whsec_c7f5c001e341c36d64d4a4c64d639a5fe0005a0af00652649ef68c62c157e86c';
 
             $event = Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
-            log('Stripe webhook event received: ' . $event->type);
-            // Handle different webhook events
+            Log::info('Stripe webhook event received', [
+                'type' => $event->type,
+                'id' => $event->id
+            ]);            // Handle different webhook events
 
 
             return response()->json(['status' => 'success']);
