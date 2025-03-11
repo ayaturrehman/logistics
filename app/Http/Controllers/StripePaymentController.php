@@ -12,6 +12,8 @@ use Stripe\Webhook;
 use App\Mail\PaymentConfirmation;
 use App\Mail\PaymentFailed;
 use App\Mail\PaymentExpired;
+use Stripe\Event as StripeEvent;
+
 
 class StripePaymentController extends Controller
 {
@@ -97,36 +99,7 @@ class StripePaymentController extends Controller
             $event = Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
             log('Stripe webhook event received: ' . $event->type);
             // Handle different webhook events
-            switch ($event->type) {
-                case 'payment_intent.succeeded':
-                    $paymentIntent = $event->data->object;
-                    $this->handleSuccessfulPayment($paymentIntent);
-                    break;
 
-                case 'payment_intent.payment_failed':
-                    $paymentIntent = $event->data->object;
-                    $this->handleFailedPayment($paymentIntent);
-                    break;
-
-                case 'payment_link.created':
-                    $paymentLink = $event->data->object;
-                    $this->handlePaymentLinkCreated($paymentLink);
-                    break;
-
-                case 'checkout.session.completed':
-                    $session = $event->data->object;
-                    $this->handleCheckoutSessionCompleted($session);
-                    break;
-
-                case 'checkout.session.expired':
-                    $session = $event->data->object;
-                    $this->handleCheckoutSessionExpired($session);
-                    break;
-
-                default:
-                    // Unexpected event type
-                    Log::warning('Unhandled Stripe webhook event: ' . $event->type);
-            }
 
             return response()->json(['status' => 'success']);
         } catch (\UnexpectedValueException $e) {
@@ -140,6 +113,43 @@ class StripePaymentController extends Controller
         } catch (\Exception $e) {
             Log::error('Stripe webhook error: ' . $e->getMessage());
             return response()->json(['error' => 'Webhook handling failed'], 500);
+        }
+
+        $this->handleEvent($event);
+    }
+
+
+    protected function handleEvent(StripeEvent $event)
+    {
+        switch ($event->type) {
+            case 'payment_intent.succeeded':
+                $paymentIntent = $event->data->object;
+                $this->handleSuccessfulPayment($paymentIntent);
+                break;
+
+            case 'payment_intent.payment_failed':
+                $paymentIntent = $event->data->object;
+                $this->handleFailedPayment($paymentIntent);
+                break;
+
+            case 'payment_link.created':
+                $paymentLink = $event->data->object;
+                $this->handlePaymentLinkCreated($paymentLink);
+                break;
+
+            case 'checkout.session.completed':
+                $session = $event->data->object;
+                $this->handleCheckoutSessionCompleted($session);
+                break;
+
+            case 'checkout.session.expired':
+                $session = $event->data->object;
+                $this->handleCheckoutSessionExpired($session);
+                break;
+
+            default:
+                // Unexpected event type
+                Log::warning('Unhandled Stripe webhook event: ' . $event->type);
         }
     }
 
