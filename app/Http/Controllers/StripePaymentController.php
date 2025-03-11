@@ -86,12 +86,13 @@ class StripePaymentController extends Controller
     public function handleWebhook(Request $request)
     {
         // \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
-        \Stripe\Stripe::setApiKey('whsec_c7f5c001e341c36d64d4a4c64d639a5fe0005a0af00652649ef68c62c157e86c');
+        \Stripe\Stripe::setApiKey('sk_test_51R1PNpB6SOReBrzH0zajlH8TmVaurU8RFi9HO4HNrQ9GIB25mrpdPtL2f0LjxsAgzFgh6tfdgHyoJuvu9vLBAIos00P64LKP1x');
         try {
 
             $payload = @file_get_contents('php://input');
             $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
             $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
+            $endpoint_secret = 'whsec_c7f5c001e341c36d64d4a4c64d639a5fe0005a0af00652649ef68c62c157e86c';
 
             $event = Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
             log('Stripe webhook event received: ' . $event->type);
