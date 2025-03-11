@@ -9,6 +9,7 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\FareController;
 use App\Http\Controllers\GoodsTypeController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\TransportTypeController;
 use App\Http\Controllers\VehicleTypeController;
 
@@ -43,3 +44,13 @@ Route::post('quotesstore', [QuoteController::class, 'storewebsite']);
 
 Route::get('goods-types', [GoodsTypeController::class, 'index']);
 Route::get('transport-types', [TransportTypeController::class, 'index']);
+Route::get('/payments/create-checkout-session', [StripePaymentController::class, 'createCheckoutSession']);
+Route::post('/stripe/webhook', [StripePaymentController::class, 'handleWebhook']);
+
+
+Route::get('/payment/success', function (Request $request) {
+    return view('payment.success');
+})->name('payment.success');
+Route::get('/payment/cancel', function (Request $request) {
+    return view('payment.cancel');
+})->name('payment.cancel');

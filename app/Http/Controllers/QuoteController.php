@@ -197,7 +197,7 @@ class QuoteController extends Controller
                 'delivery_contact_name'         => 'nullable|string|max:255',
                 'delivery_contact_phone'        => 'nullable|string|max:20',
                 'delivery_contact_email'        => 'nullable|email|max:255',
-                
+
                 'vehicle_available_from'        => 'nullable|date|after_or_equal:today',
                 'vehicle_available_to'          => 'nullable|date|after_or_equal:vehicle_available_from',
                 'vehicle_make'                  => 'nullable|string|max:255',
@@ -282,7 +282,10 @@ class QuoteController extends Controller
             $quote->payment_status              = $validated['payment_status'] ?? 'pending';
             $quote->save();
 
-            
+            $stripeController = new StripePaymentController();
+            $checkoutSession = $stripeController->createCheckoutSession(new Request([
+                'quote_id' => $quote->id
+            ]));
             // Generate payment link
             $paymentLink = "https://demo-payment.example.com/pay/" . $quote->id;
             // Send email to customer

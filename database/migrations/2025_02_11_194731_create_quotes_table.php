@@ -51,8 +51,12 @@ return new class extends Migration
             $table->longText('comments')->nullable();
             
             // Payment details
+            $table->string('payment_link_id')->nullable();
+            $table->string('payment_link_url')->nullable();
+            
             $table->string('payment_method')->nullable();
             $table->json('payment_details')->nullable();
+            
             $table->decimal('amount_paid', 10, 2)->default(0.00);
             $table->decimal('amount_due', 10, 2)->default(0.00);
             $table->enum('payment_status', ['pending', 'paid', 'partially_paid', 'failed'])->default('pending');
