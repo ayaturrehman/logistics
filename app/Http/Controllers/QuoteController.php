@@ -284,7 +284,6 @@ class QuoteController extends Controller
 
             // Generate payment link
             $paymentLink = "https://demo-payment.example.com/pay/" . $quote->id;
-
             // Send email to customer
             Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
