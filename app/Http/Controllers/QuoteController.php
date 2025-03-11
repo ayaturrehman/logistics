@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\FareCalculationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
@@ -214,11 +215,28 @@ class QuoteController extends Controller
             ]);
 
             // Check if customer exists based on email
+
+            $user = User::where('email', $validated['email'])->first();
+            $customer = Customer::where('user_id', $user->id)->first();
+
+            if (!$customer) {
+                $customer = Customer::create([
+                    'user_id'       => $user->id, // Link to created user
+                    'business_id'   => getUserBusinessId(), // Assign business ID
+                    'phone'         => $validated['phone'] ?? null,
+                    'address'       => $validated['address'] ?? null,
+                    'city'          => $validated['city'] ?? null,
+                    'state'         => $validated['state'] ?? null,
+                    'postal_code'   => $validated['postal_code'] ?? null,
+                    'country'       => $validated['country'] ?? null,
+                    'status'        => 'active', // Default status
+                ]);
+            }
+
             $customer = Customer::whereHas('user', function ($query) use ($validated) {
                 $query->where('email', $validated['email']);
             })->first();
 
-            // If customer does not exist, create user & customer
             if (!$customer) {
                 $user = User::create([
                     'name' => $validated['name'],
@@ -276,7 +294,6 @@ class QuoteController extends Controller
             $quote->seating_capacity            = $validated['seating_capacity'] ?? null;
             $quote->comments                    = $validated['comments'] ?? null;
             $quote->payment_method              = $validated['payment_method'] ?? null;
-            $quote->payment_details             = json_encode($validated['payment_details'] ?? []);
             $quote->amount_paid                 = $validated['amount_paid'] ?? 0.00;
             $quote->amount_due                  = $validated['amount_due'] ?? 0.00;
             $quote->payment_status              = $validated['payment_status'] ?? 'pending';
@@ -287,11 +304,13 @@ class QuoteController extends Controller
                 'quote_id' => $quote->id
             ]));
             // Generate payment link
-            $paymentLink = "https://demo-payment.example.com/pay/" . $quote->id;
+            $paymentLink = $checkoutSession['payment_link'];
+            // $paymentLink = $paymentLink['payment_link'];
             // Send email to customer
             Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
+                'payment_link' => $paymentLink,
                 'success' => true,
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
@@ -299,6 +318,7 @@ class QuoteController extends Controller
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

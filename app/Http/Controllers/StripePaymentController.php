@@ -32,7 +32,9 @@ class StripePaymentController extends Controller
                 return response()->json(['error' => 'Payment already made'], 400);
             }
 
-            \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+            // \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
+            \Stripe\Stripe::setApiKey('sk_test_51R1PNpB6SOReBrzH0zajlH8TmVaurU8RFi9HO4HNrQ9GIB25mrpdPtL2f0LjxsAgzFgh6tfdgHyoJuvu9vLBAIos00P64LKP1x');
+
 
             // First create a product
             $product = \Stripe\Product::create([
@@ -66,7 +68,7 @@ class StripePaymentController extends Controller
                 ],
             ]);
 
-            // Update quote with payment link if the array 
+            // Update quote with payment link if the array
             $quote->update([
                 'payment_details' => array_merge(
                     $quote->payment_details ?? [],
@@ -80,10 +82,10 @@ class StripePaymentController extends Controller
                 )
             ]);
 
-            return response()->json([
+            return [
                 'payment_link' => $paymentLink->url,
                 // 'quote' => $quote,
-            ]);
+            ];
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
