@@ -25,8 +25,12 @@ class StripePaymentController extends Controller
                 'quote_id' => 'required|exists:quotes,id',
             ]);
 
-            // Get quote details
-            $quote = Quote::findOrFail($validated['quote_id']);
+            // Get quote details // where status is payment_status is not paid
+            $quote = Quote::where('payment_status', '!=', 'paid')->findOrFail($validated['quote_id']);
+
+            if($quote->payment_status == 'paid'){
+                return response()->json(['error' => 'Payment already made'], 400);
+            }
 
             \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
 
@@ -62,10 +66,10 @@ class StripePaymentController extends Controller
                 ],
             ]);
 
-            // Update quote with payment link
+            // Update quote with payment link if the array 
             $quote->update([
                 'payment_details' => array_merge(
-                    $quote->payment_details ?? '[]',
+                    $quote->payment_details ?? [],
                     [
                         'payment_link_id' => $paymentLink->id,
                         'payment_link_url' => $paymentLink->url,
@@ -78,7 +82,7 @@ class StripePaymentController extends Controller
 
             return response()->json([
                 'payment_link' => $paymentLink->url,
-                'quote' => $quote,
+                // 'quote' => $quote,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -94,7 +98,7 @@ class StripePaymentController extends Controller
         $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
         $endpoint_secret = 'whsec_c7f5c001e341c36d64d4a4c64d639a5fe0005a0af00652649ef68c62c157e86c';
 
-       
+
         try {
             $event = \Stripe\Event::constructFrom(
                 json_decode($payload, true)
@@ -110,13 +114,12 @@ class StripePaymentController extends Controller
 
 
             $event = Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
-            Log::info('Stripe webhook event received', [
-                'type' => $event->type,
-                'id' => $event->id
-            ]);            // Handle different webhook events
+            // Log::info('Stripe webhook event received', [
+            //     'type'      => $event->type,
+            //     'detail'    => $event,
+            //     'id'        => $event->id
+            // ]);            // Handle different webhook events
 
-
-            return response()->json(['status' => 'success']);
         } catch (\UnexpectedValueException $e) {
             // Invalid payload
             Log::error('Invalid Stripe webhook payload: ' . $e->getMessage());
@@ -130,6 +133,12 @@ class StripePaymentController extends Controller
             return response()->json(['error' => 'Webhook handling failed'], 500);
         }
 
+        // Log::info('Stripe webhook event received', [
+        //     'type'      => $event->type,
+        //     'detail'    => $event,
+        //     'id'        => $event->id
+        // ]);
+
         $this->handleEvent($event);
     }
 
@@ -137,20 +146,20 @@ class StripePaymentController extends Controller
     protected function handleEvent(StripeEvent $event)
     {
         switch ($event->type) {
-            case 'payment_intent.succeeded':
-                $paymentIntent = $event->data->object;
-                $this->handleSuccessfulPayment($paymentIntent);
-                break;
+            // case 'payment_intent.succeeded':
+            //     $paymentIntent = $event->data->object;
+            //     $this->handleSuccessfulPayment($paymentIntent);
+            //     break;
 
             case 'payment_intent.payment_failed':
                 $paymentIntent = $event->data->object;
                 $this->handleFailedPayment($paymentIntent);
                 break;
 
-            case 'payment_link.created':
-                $paymentLink = $event->data->object;
-                $this->handlePaymentLinkCreated($paymentLink);
-                break;
+            // case 'payment_link.created':
+            //     $paymentLink = $event->data->object;
+            //     $this->handlePaymentLinkCreated($paymentLink);
+            //     break;
 
             case 'checkout.session.completed':
                 $session = $event->data->object;
@@ -170,7 +179,9 @@ class StripePaymentController extends Controller
 
     private function handleSuccessfulPayment($paymentIntent)
     {
+
         $quote = Quote::where('payment_details->payment_intent_id', $paymentIntent->id)->first();
+        Log::info('Payment intent', ['quote' => $quote]);
         if ($quote) {
             $quote->update([
                 'payment_status' => 'paid',
@@ -218,23 +229,39 @@ class StripePaymentController extends Controller
 
     private function handleCheckoutSessionCompleted($session)
     {
-        $quote = Quote::find($session->metadata->quote_id);
+
+        $quoteId = $session['metadata']['quote_id'] ?? null;
+        if (!$quoteId) {
+            Log::error('Checkout session missing quote ID', ['session_id' => $session['id']]);
+            return;
+        }
+        Log::info('Checkout session completed', ['session_id' => $session]);
+        $quote = Quote::find($quoteId);
+
+
         if ($quote) {
+
+            if (is_string($quote->payment_details)) {
+                $existingPaymentDetails = json_decode($quote->payment_details, true) ?? [];
+            } else {
+                $existingPaymentDetails = (array) $quote->payment_details;
+            }
+
             $quote->update([
                 'payment_status' => 'paid',
                 'amount_paid' => $session->amount_total / 100,
                 'amount_due' => 0,
                 'payment_method' => 'stripe',
-                'payment_details' => array_merge(
-                    json_decode($quote->payment_details ?? '[]', true),
+                'payment_details' =>  array_merge(
+                    $existingPaymentDetails,
                     [
-                        'stripe_session_id' => $session->id,
-                        'payment_intent_id' => $session->payment_intent,
-                        'payment_status' => $session->payment_status,
-                        'customer_email' => $session->customer_details->email,
-                        'payment_date' => now(),
+                        'stripe_session_id'  => $session['id'],
+                        'payment_intent_id'  => $session['payment_intent'],
+                        'payment_status'     => $session['payment_status'],
+                        'customer_email'     => $session['customer_details']['email'],
+                        'payment_date'       => now(),
                     ]
-                )
+                ),
             ]);
 
             // Send payment confirmation email

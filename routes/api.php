@@ -49,10 +49,10 @@ Route::post('/stripe/webhook', [StripePaymentController::class, 'handleWebhook']
 
 
 Route::get('/payment/success', function (Request $request) {
-    return view('payment.success');
+    // return view('payment.success');
 })->name('payment.success');
 Route::get('/payment/cancel', function (Request $request) {
-    return view('payment.cancel');
+    // return view('payment.cancel');
 })->name('payment.cancel');
 
 
