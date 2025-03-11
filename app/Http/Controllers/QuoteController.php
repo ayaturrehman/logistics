@@ -172,15 +172,12 @@ class QuoteController extends Controller
     public function storewebsite(Request $request)
     {
 
-
-
         try {
             // Validate the input
             $validated = $request->validate([
                 'name'                          => 'required|string|max:255',
                 'email'                         => 'required|email|max:255',
                 'phone'                         => 'required|string|max:20',
-                // 'good_type'                     => 'required|exists:goods_types,id',
                 'datetime'                      => 'nullable',
                 'transport_type'                => 'nullable|exists:transport_types,id',
                 'address'                       => 'nullable|string|max:255',
