@@ -217,7 +217,13 @@ class QuoteController extends Controller
             // Check if customer exists based on email
 
             $user = User::where('email', $validated['email'])->first();
-            $customer = Customer::where('user_id', $user?->id)->first();
+            $customer = null;
+            if ($user) {
+                $customer = Customer::where('user_id', $user->id)->first();
+            } else {
+                $customer = null;
+            }
+            // $customer = Customer::where('user_id', $user?->id)->first();
 
             if (!$customer) {
                 $customer = Customer::create([
