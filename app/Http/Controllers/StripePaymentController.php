@@ -58,7 +58,8 @@ class StripePaymentController extends Controller
                 'after_completion' => [
                     'type' => 'redirect',
                     'redirect' => [
-                        'url' => route('payment.success', ['quote' => $quote->id])
+                        // 'url' => route('payment.success', ['quote' => $quote->id])
+                        'url' => 'https://www.a2blogistiks.uk'
                     ],
                 ],
                 'metadata' => [
