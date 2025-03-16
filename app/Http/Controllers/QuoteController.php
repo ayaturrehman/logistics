@@ -225,7 +225,7 @@ class QuoteController extends Controller
             }
             // $customer = Customer::where('user_id', $user?->id)->first();
 
-            if (!$customer) {
+            if (!$customer && $user) {
                 $customer = Customer::create([
                     'user_id'       => $user->id, // Link to created user
                     'business_id'   => getUserBusinessId(), // Assign business ID
