@@ -46,7 +46,7 @@ class StripePaymentController extends Controller
             $price = \Stripe\Price::create([
                 'product' => $product->id,
                 'unit_amount' => (int)($quote->estimated_fare * 100),
-                'currency' => 'usd',
+                'currency' => 'gbp',
             ]);
 
             // Create a Payment Link with the price
