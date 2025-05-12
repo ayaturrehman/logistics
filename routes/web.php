@@ -26,7 +26,7 @@ Route::get('/test-queue', function () {
     $checkoutResponse = $stripeController->createCheckoutSession(new Request([
         'quote_id' => $quote->id
     ]));
-    echo env('STRIPE_SECRET_KEY');
-    return $responseData = $checkoutResponse['payment_link'];
+    // echo env('STRIPE_SECRET_KEY');
+    return $responseData = $checkoutResponse;
 });
   
