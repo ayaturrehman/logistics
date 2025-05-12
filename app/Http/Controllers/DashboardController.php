@@ -17,6 +17,10 @@ class DashboardController extends Controller
             ->whereYear('created_at', date('Y'))
             ->sum('amount_due');
 
+        $data['recent_quotes'] = Quote::orderBy('created_at', 'desc')
+            ->take(10)
+            ->get(['id', 'amount_due', 'created_at']);
+
         return response()->json([
             'data' => $data,
             'message' => 'Dashboard data retrieved successfully',
