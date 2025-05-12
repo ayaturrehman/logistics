@@ -70,7 +70,7 @@ class StripePaymentController extends Controller
             ]);
 
             // Update quote with payment link if the array
-             $quote->update([
+             return $quote->update([
                 'payment_details' => array_merge(
                     $quote->payment_details ?? [],
                     [

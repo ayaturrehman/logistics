@@ -21,12 +21,12 @@ Route::get('/test-email', function () {
 
 
 Route::get('/test-queue', function () {
-    $quote = Quote::first(); // Get a sample quote
+    return $quote = Quote::latest()->first(); // Get a sample quote
     $stripeController = new StripePaymentController();
     $checkoutResponse = $stripeController->createCheckoutSession(new Request([
         'quote_id' => $quote->id
     ]));
     // echo 'api_Key'. config('services.stripe.key');
-    return $responseData = $checkoutResponse['payment_link'];
+    return $responseData = $checkoutResponse;
 });
   
