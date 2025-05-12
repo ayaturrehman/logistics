@@ -12,7 +12,7 @@ use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\TransportTypeController;
 use App\Http\Controllers\VehicleTypeController;
-
+use App\Http\Controllers\DashboardController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -30,6 +30,7 @@ Route::get('/sanctum/csrf-cookie', function (Request $request) {
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::apiResource('businesses', BusinessController::class);
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('drivers', DriverController::class);
