@@ -309,11 +309,9 @@ class QuoteController extends Controller
             $checkoutResponse = $stripeController->createCheckoutSession(new Request([
                 'quote_id' => $quote->id
             ]));
-            $responseData = $checkoutResponse->getData();
+            return $responseData = $checkoutResponse->getData();
             // Generate payment link
-            $paymentLink = $responseData->payment_link ?? null;
-            // $paymentLink = $paymentLink['payment_link'];
-            // Send email to customer
+            $paymentLink = $responseData['payment_link'];
             Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
@@ -322,6 +320,7 @@ class QuoteController extends Controller
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
             ], 201);
+
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {

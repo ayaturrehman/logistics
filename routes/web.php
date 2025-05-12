@@ -4,7 +4,8 @@ use App\Mail\QuoteCreated;
 use App\Models\Quote;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Http\Request;
+use App\Http\Controllers\StripePaymentController;
 Route::get('/payment', function () {
     return view('welcome');
 });
@@ -17,3 +18,14 @@ Route::get('/test-email', function () {
     Mail::to('ayatuk@yahoo.com')->queue(new QuoteCreated($quote, $paymentLink));
     dump('Email sent!');
 });
+
+
+Route::get('/test-queue', function () {
+    $quote = Quote::first(); // Get a sample quote
+    $stripeController = new StripePaymentController();
+    $checkoutResponse = $stripeController->createCheckoutSession(new Request([
+        'quote_id' => $quote->id
+    ]));
+    return $responseData = $checkoutResponse['payment_link'];
+});
+  
