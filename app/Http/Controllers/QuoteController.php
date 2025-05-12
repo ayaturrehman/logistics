@@ -309,9 +309,8 @@ class QuoteController extends Controller
             $checkoutResponse = $stripeController->createCheckoutSession(new Request([
                 'quote_id' => $quote->id
             ]));
-            return $responseData = $checkoutResponse->getData();
             // Generate payment link
-            $paymentLink = $responseData['payment_link'];
+            $paymentLink = $checkoutResponse['payment_link'];
             Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
