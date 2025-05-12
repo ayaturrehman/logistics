@@ -11,11 +11,11 @@ class DashboardController extends Controller
     {
         $data['this_month_quotes'] = Quote::whereMonth('created_at', date('m'))
             ->whereYear('created_at', date('Y'))
-            ->sum('amount_due');
+            ->sum('estimated_fare');
 
         $data['last_month_quotes'] = Quote::whereMonth('created_at', date('m', strtotime('-1 month')))
             ->whereYear('created_at', date('Y'))
-            ->sum('amount_due');
+            ->sum('estimated_fare');
 
         $data['this_month_total_quotes'] = Quote::whereMonth('created_at', date('m'))
             ->whereYear('created_at', date('Y'))
@@ -24,12 +24,25 @@ class DashboardController extends Controller
             ->whereYear('created_at', date('Y'))
             ->count();
 
-        $data['pending_quotes'] = Quote::where('status', 'pending')
+        $data['pending_quotes'] = Quote::where('payment_status', 'pending')
             ->count();
 
-        $data['recent_quotes'] = Quote::with(['customer', 'vehicleType'])->orderBy('created_at', 'desc')
+        $data['recent_quotes'] = Quote::with([
+            'customer' => fn($q) => $q->select('id', 'user_id'),
+            'customer.user:id,name',
+            'vehicleType:id,name',
+        ])->orderBy('created_at', 'desc')
             ->take(10)
-            ->get(['id', 'amount_due', 'created_at']);
+            ->get();
+            // this new number of customers
+        $data['this_month_new_customers'] = Quote::where('created_at', '>=', now()->subMonth())
+            ->distinct('customer_id')
+            ->count('customer_id');
+
+        $data['last_month_new_customers'] = Quote::where('created_at', '>=', now()->subMonth(2)->startOfMonth())
+            ->where('created_at', '<=', now()->subMonth(1)->endOfMonth())
+            ->distinct('customer_id')
+            ->count('customer_id');
 
         return response()->json([
             'data' => $data,
