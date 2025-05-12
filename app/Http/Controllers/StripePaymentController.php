@@ -96,7 +96,6 @@ class StripePaymentController extends Controller
     {
         // \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
         \Stripe\Stripe::setApiKey(config('services.stripe.key'));
-        // \Stripe\Stripe::setApiKey('sk_test_51R2ZOqPt6oHLLigNFVQUYoKAPItaZPXdbYHVqSru5MqOHTWO9Q97WW4C7TFd8VTYvaPLiFmMnLeUE9Z9XHj8ZdAr001h9288Mc');
         $payload = @file_get_contents('php://input');
         $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
         $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
