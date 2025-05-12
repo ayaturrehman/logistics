@@ -293,7 +293,6 @@ class StripePaymentController extends Controller
                 ->send(new PaymentExpired($quote));
         }
     }
-
     private function handlePaymentLinkCreated($paymentLink)
     {
         Log::info('Payment link created', ['payment_link_id' => $paymentLink->id]);
