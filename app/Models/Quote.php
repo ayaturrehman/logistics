@@ -55,6 +55,7 @@ class Quote extends Model
         'vehicle_available_to' => 'datetime',
     ];
 
+    
     public function customer()
     {
         return $this->belongsTo(Customer::class);

@@ -28,7 +28,7 @@ class StripePaymentController extends Controller
             // Get quote details // where status is payment_status is not paid
             $quote = Quote::where('payment_status', '!=', 'paid')->findOrFail($validated['quote_id']);
 
-            if ($quote->payment_status == 'paid') {
+            if($quote->payment_status == 'paid'){
                 return response()->json(['error' => 'Payment already made'], 400);
             }
 
@@ -70,17 +70,27 @@ class StripePaymentController extends Controller
             ]);
 
             // Update quote with payment link if the array
+            $existingDetails = [];
+
+            if (!empty($quote->payment_details)) {
+                $existingDetails = is_array($quote->payment_details)
+                    ? $quote->payment_details
+                    : json_decode($quote->payment_details, true);
+        
+                // Fallback in case json_decode fails
+                if (!is_array($existingDetails)) {
+                    $existingDetails = [];
+                }
+            }
+        
             return $quote->update([
-                'payment_details' => array_merge(
-                    (array) json_decode($quote->payment_details, true),   // ← always an array
-                    [
-                        'payment_link_id' => $paymentLink->id,
-                        'payment_link_url' => $paymentLink->url,
-                        'product_id'      => $product->id,
-                        'price_id'        => $price->id,
-                        'updated_at'      => now(),
-                    ]
-                ),
+                'payment_details' => array_merge($existingDetails, [
+                    'payment_link_id'   => $paymentLink->id,
+                    'payment_link_url'  => $paymentLink->url,
+                    'product_id'        => $product->id,
+                    'price_id'          => $price->id,
+                    'updated_at'        => now(),
+                ]),
             ]);
 
             return [
