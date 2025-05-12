@@ -21,7 +21,7 @@ Route::get('/test-email', function () {
 
 
 Route::get('/test-queue', function () {
-    return $quote = Quote::latest()->first(); // Get a sample quote
+     $quote = Quote::latest()->first(); // Get a sample quote
     $stripeController = new StripePaymentController();
     $checkoutResponse = $stripeController->createCheckoutSession(new Request([
         'quote_id' => $quote->id

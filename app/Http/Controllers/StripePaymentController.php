@@ -28,7 +28,7 @@ class StripePaymentController extends Controller
             // Get quote details // where status is payment_status is not paid
             $quote = Quote::where('payment_status', '!=', 'paid')->findOrFail($validated['quote_id']);
 
-            if($quote->payment_status == 'paid'){
+            if ($quote->payment_status == 'paid') {
                 return response()->json(['error' => 'Payment already made'], 400);
             }
 
@@ -70,17 +70,17 @@ class StripePaymentController extends Controller
             ]);
 
             // Update quote with payment link if the array
-             return $quote->update([
+            return $quote->update([
                 'payment_details' => array_merge(
-                    $quote->payment_details ?? [],
+                    (array) json_decode($quote->payment_details, true),   // ← always an array
                     [
                         'payment_link_id' => $paymentLink->id,
                         'payment_link_url' => $paymentLink->url,
-                        'product_id' => $product->id,
-                        'price_id' => $price->id,
-                        'updated_at' => now(),
+                        'product_id'      => $product->id,
+                        'price_id'        => $price->id,
+                        'updated_at'      => now(),
                     ]
-                )
+                ),
             ]);
 
             return [
