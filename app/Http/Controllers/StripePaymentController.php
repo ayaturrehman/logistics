@@ -33,15 +33,13 @@ class StripePaymentController extends Controller
             }
 
             \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
-            // \Stripe\Stripe::setApiKey('sk_test_51R2ZOqPt6oHLLigNFVQUYoKAPItaZPXdbYHVqSru5MqOHTWO9Q97WW4C7TFd8VTYvaPLiFmMnLeUE9Z9XHj8ZdAr001h9288Mc');
-
-
             // First create a product
             $product = \Stripe\Product::create([
                 'name' => 'Transport Quote #' . $quote->id,
                 'description' => "From: {$quote->pickup_locations['text']} To: {$quote->dropoff_locations['text']}",
             ]);
 
+            
             // Then create a price for this product
             $price = \Stripe\Price::create([
                 'product' => $product->id,
@@ -95,12 +93,9 @@ class StripePaymentController extends Controller
     public function handleWebhook(Request $request)
     {
         \Stripe\Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
-        // \Stripe\Stripe::setApiKey('sk_test_51R2ZOqPt6oHLLigNFVQUYoKAPItaZPXdbYHVqSru5MqOHTWO9Q97WW4C7TFd8VTYvaPLiFmMnLeUE9Z9XHj8ZdAr001h9288Mc');
         $payload = @file_get_contents('php://input');
         $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
         $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
-        $endpoint_secret = 'whsec_tEVNobFhHQNySGAuYGm8WSwWfWeH5SvZ';
-
 
         try {
             $event = \Stripe\Event::constructFrom(
@@ -232,44 +227,89 @@ class StripePaymentController extends Controller
 
     private function handleCheckoutSessionCompleted($session)
     {
-
-        $quoteId = $session['metadata']['quote_id'] ?? null;
-        if (!$quoteId) {
-            Log::error('Checkout session missing quote ID', ['session_id' => $session['id']]);
-            return;
-        }
-        Log::info('Checkout session completed', ['session_id' => $session]);
-        $quote = Quote::find($quoteId);
-
-
-        if ($quote) {
-
-            if (is_string($quote->payment_details)) {
-                $existingPaymentDetails = json_decode($quote->payment_details, true) ?? [];
+        try {
+            // Check if session is an object or array and access accordingly
+            if (is_object($session)) {
+                $quoteId = $session->metadata->quote_id ?? null;
             } else {
-                $existingPaymentDetails = (array) $quote->payment_details;
+                $quoteId = $session['metadata']['quote_id'] ?? null;
             }
 
+            if (!$quoteId) {
+                Log::error('Checkout session missing quote ID', [
+                    'session' => json_encode($session)
+                ]);
+                return;
+            }
+
+            Log::info('Processing checkout session', [
+                'quote_id' => $quoteId
+            ]);
+
+            $quote = Quote::find($quoteId);
+            if (!$quote) {
+                Log::error('Quote not found', ['quote_id' => $quoteId]);
+                return;
+            }
+
+            // Handle payment details properly
+            $existingPaymentDetails = [];
+            if (!empty($quote->payment_details)) {
+                if (is_string($quote->payment_details)) {
+                    $existingPaymentDetails = json_decode($quote->payment_details, true) ?? [];
+                } else {
+                    $existingPaymentDetails = (array)$quote->payment_details;
+                }
+            }
+
+            // Access session data safely
+            $amount = is_object($session) ? $session->amount_total : $session['amount_total'];
+            $sessionId = is_object($session) ? $session->id : $session['id'];
+            $paymentIntent = is_object($session) ? $session->payment_intent : $session['payment_intent'];
+            $paymentStatus = is_object($session) ? $session->payment_status : $session['payment_status'];
+            
+            // Get customer email safely
+            $customerEmail = null;
+            if (is_object($session) && isset($session->customer_details)) {
+                $customerEmail = $session->customer_details->email ?? null;
+            } elseif (isset($session['customer_details']) && isset($session['customer_details']['email'])) {
+                $customerEmail = $session['customer_details']['email'];
+            }
+
+            // Update quote payment status
             $quote->update([
                 'payment_status' => 'paid',
-                'amount_paid' => $session->amount_total / 100,
+                'amount_paid' => $amount / 100,
                 'amount_due' => 0,
                 'payment_method' => 'stripe',
-                'payment_details' =>  array_merge(
+                'payment_details' => array_merge(
                     $existingPaymentDetails,
                     [
-                        'stripe_session_id'  => $session['id'],
-                        'payment_intent_id'  => $session['payment_intent'],
-                        'payment_status'     => $session['payment_status'],
-                        'customer_email'     => $session['customer_details']['email'],
-                        'payment_date'       => now(),
+                        'stripe_session_id' => $sessionId,
+                        'payment_intent_id' => $paymentIntent,
+                        'payment_status' => $paymentStatus,
+                        'customer_email' => $customerEmail,
+                        'payment_date' => now()->toIso8601String(),
                     ]
-                ),
+                )
             ]);
 
             // Send payment confirmation email
-            Mail::to($quote->customer->user->email)
-                ->send(new PaymentConfirmation($quote));
+            if ($quote->customer && $quote->customer->user) {
+                Mail::to($quote->customer->user->email)
+                    ->send(new PaymentConfirmation($quote));
+            }
+
+            Log::info('Payment processed successfully', [
+                'quote_id' => $quote->id,
+                'session_id' => $sessionId
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in handleCheckoutSessionCompleted', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 
@@ -293,6 +333,7 @@ class StripePaymentController extends Controller
                 ->send(new PaymentExpired($quote));
         }
     }
+
     private function handlePaymentLinkCreated($paymentLink)
     {
         Log::info('Payment link created', ['payment_link_id' => $paymentLink->id]);
