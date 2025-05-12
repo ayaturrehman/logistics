@@ -17,7 +17,17 @@ class DashboardController extends Controller
             ->whereYear('created_at', date('Y'))
             ->sum('amount_due');
 
-        $data['recent_quotes'] = Quote::orderBy('created_at', 'desc')
+        $data['this_month_total_quotes'] = Quote::whereMonth('created_at', date('m'))
+            ->whereYear('created_at', date('Y'))
+            ->count();
+        $data['last_month_total_quotes'] = Quote::whereMonth('created_at', date('m', strtotime('-1 month')))
+            ->whereYear('created_at', date('Y'))
+            ->count();
+
+        $data['pending_quotes'] = Quote::where('status', 'pending')
+            ->count();
+
+        $data['recent_quotes'] = Quote::with(['customer', 'vehicleType'])->orderBy('created_at', 'desc')
             ->take(10)
             ->get(['id', 'amount_due', 'created_at']);
 
