@@ -97,9 +97,27 @@ class VehicleTypeController extends Controller
 
         $quotes = [];
 
+
+
+
         foreach ($vehicleTypes as $vehicle) {
+
+            $baseFare = $vehicle->fare->base_fare;
+            $distanceMiles = $request->estimated_distance;
+            $additionalFare = 0;
+            if ($distanceMiles <= 50) {
+                $baseFare = $vehicle->fare->base_fare;
+            } else {
+                $additionalMiles = $distanceMiles - 50;
+                $additionalFare = $additionalMiles * $vehicle->fare->per_mile_rate;
+            }
+
+
+            $totalFare = $baseFare + $additionalFare;
+
+
+
             if ($vehicle->fare && ($vehicle->fare->base_fare > 0 || $vehicle->fare->per_mile_rate > 0)) {
-                $totalFare = $vehicle->fare->base_fare + ($vehicle->fare->per_mile_rate * $request->estimated_distance);
 
                 $quotes[] = [
                     'id' => $vehicle->id,
