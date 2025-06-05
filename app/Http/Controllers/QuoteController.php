@@ -318,7 +318,7 @@ class QuoteController extends Controller
 
             return response()->json([
                 'payment_link' => $checkoutResponse,
-                'success' => true,
+                // 'success' => true,
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
             ], 201);
