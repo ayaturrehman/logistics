@@ -310,10 +310,10 @@ class QuoteController extends Controller
                 'quote_id' => $quote->id
             ]));
             $responseData = $checkoutResponse->getData();
-            $paymentLink = $responseData;
+            $paymentLink = $responseData->payment_link ?? null;
 
             //   payment link
-            $paymentLink = $checkoutResponse['payment_link'];
+            
             // Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
