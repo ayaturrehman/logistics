@@ -306,7 +306,7 @@ class QuoteController extends Controller
             $quote->save();
 
             $stripeController = new StripePaymentController();
-            return $checkoutResponse = $stripeController->createCheckoutSession(new Request([
+            $checkoutResponse = $stripeController->createCheckoutSession(new Request([
                 'quote_id' => $quote->id
             ]));
 
