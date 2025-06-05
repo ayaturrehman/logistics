@@ -17,6 +17,91 @@ use Stripe\Event as StripeEvent;
 
 class StripePaymentController extends Controller
 {
+    // public function createCheckoutSession(Request $request)
+    // {
+    //     try {
+    //         // Validate request
+    //         $validated = $request->validate([
+    //             'quote_id' => 'required|exists:quotes,id',
+    //         ]);
+
+    //         // Get quote details // where status is payment_status is not paid
+    //         $quote = Quote::where('payment_status', '!=', 'paid')->findOrFail($validated['quote_id']);
+
+    //         if ($quote->payment_status == 'paid') {
+    //             return response()->json(['error' => 'Payment already made'], 400);
+    //         }
+
+    //         \Stripe\Stripe::setApiKey(config('services.stripe.key'));
+    //         // \Stripe\Stripe::setApiKey('sk_test_51R2ZOqPt6oHLLigNFVQUYoKAPItaZPXdbYHVqSru5MqOHTWO9Q97WW4C7TFd8VTYvaPLiFmMnLeUE9Z9XHj8ZdAr001h9288Mc');
+
+
+    //         // First create a product
+    //         $product = \Stripe\Product::create([
+    //             'name' => 'Transport Quote #' . $quote->id,
+    //             'description' => "From: {$quote->pickup_locations['text']} To: {$quote->dropoff_locations['text']}",
+    //         ]);
+
+    //         // Then create a price for this product
+    //         $price = \Stripe\Price::create([
+    //             'product' => $product->id,
+    //             'unit_amount' => (int)($quote->estimated_fare * 100),
+    //             'currency' => 'gbp',
+    //         ]);
+
+    //         // Create a Payment Link with the price
+    //         $paymentLink = PaymentLink::create([
+    //             'line_items' => [[
+    //                 'price' => $price->id,
+    //                 'quantity' => 1,
+    //             ]],
+    //             'after_completion' => [
+    //                 'type' => 'redirect',
+    //                 'redirect' => [
+    //                     // 'url' => route('payment.success', ['quote' => $quote->id])
+    //                     'url' => 'https://www.a2blogistiks.uk'
+    //                 ],
+    //             ],
+    //             'metadata' => [
+    //                 'quote_id' => $quote->id,
+    //                 'customer_id' => $quote->customer_id,
+    //                 'estimated_fare' => $quote->estimated_fare,
+    //             ],
+    //         ]);
+
+    //         // Update quote with payment link if the array
+    //         $existingDetails = [];
+
+    //         if (!empty($quote->payment_details)) {
+    //             $existingDetails = is_array($quote->payment_details)
+    //                 ? $quote->payment_details
+    //                 : json_decode($quote->payment_details, true);
+
+    //             // Fallback in case json_decode fails
+    //             if (!is_array($existingDetails)) {
+    //                 $existingDetails = [];
+    //             }
+    //         }
+
+    //         $quote->update([
+    //             'payment_details' => array_merge($existingDetails, [
+    //                 'payment_link_id'   => $paymentLink->id,
+    //                 'payment_link_url'  => $paymentLink->url,
+    //                 'product_id'        => $product->id,
+    //                 'price_id'          => $price->id,
+    //                 'updated_at'        => now(),
+    //             ]),
+    //         ]);
+
+    //         return [
+    //             'payment_link' => $paymentLink->url,
+    //             // 'quote' => $quote,
+    //         ];
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage()], 500);
+    //     }
+    // }
+
     public function createCheckoutSession(Request $request)
     {
         try {
@@ -25,7 +110,6 @@ class StripePaymentController extends Controller
                 'quote_id' => 'required|exists:quotes,id',
             ]);
 
-            // Get quote details // where status is payment_status is not paid
             $quote = Quote::where('payment_status', '!=', 'paid')->findOrFail($validated['quote_id']);
 
             if ($quote->payment_status == 'paid') {
@@ -33,35 +117,48 @@ class StripePaymentController extends Controller
             }
 
             \Stripe\Stripe::setApiKey(config('services.stripe.key'));
-            // \Stripe\Stripe::setApiKey('sk_test_51R2ZOqPt6oHLLigNFVQUYoKAPItaZPXdbYHVqSru5MqOHTWO9Q97WW4C7TFd8VTYvaPLiFmMnLeUE9Z9XHj8ZdAr001h9288Mc');
-
 
             // First create a product
             $product = \Stripe\Product::create([
                 'name' => 'Transport Quote #' . $quote->id,
                 'description' => "From: {$quote->pickup_locations['text']} To: {$quote->dropoff_locations['text']}",
+                'metadata' => [
+                    'quote_id' => $quote->id
+                ]
             ]);
 
-            // Then create a price for this product
+            // Create a price
             $price = \Stripe\Price::create([
                 'product' => $product->id,
                 'unit_amount' => (int)($quote->estimated_fare * 100),
                 'currency' => 'gbp',
             ]);
 
-            // Create a Payment Link with the price
-            $paymentLink = PaymentLink::create([
+            // Create payment intent with manual capture
+            $paymentIntent = \Stripe\PaymentIntent::create([
+                'amount' => (int)($quote->estimated_fare * 100),
+                'currency' => 'gbp',
+                'automatic_payment_methods' => ['enabled' => true],
+                'capture_method' => 'manual', // This is the key - only authorize, don't capture yet
+                'metadata' => [
+                    'quote_id' => $quote->id,
+                    'customer_id' => $quote->customer_id,
+                    'estimated_fare' => $quote->estimated_fare,
+                ],
+                'description' => "Transport Quote #" . $quote->id . " - Authorization",
+            ]);
+
+            // Create checkout session with the payment intent
+            $session = \Stripe\Checkout\Session::create([
+                'payment_method_types' => ['card'],
+                'mode' => 'payment',
+                'payment_intent' => $paymentIntent->id,
                 'line_items' => [[
                     'price' => $price->id,
                     'quantity' => 1,
                 ]],
-                'after_completion' => [
-                    'type' => 'redirect',
-                    'redirect' => [
-                        // 'url' => route('payment.success', ['quote' => $quote->id])
-                        'url' => 'https://www.a2blogistiks.uk'
-                    ],
-                ],
+                'success_url' => 'https://www.a2blogistiks.uk/payment-success?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => 'https://www.a2blogistiks.uk/payment-cancel',
                 'metadata' => [
                     'quote_id' => $quote->id,
                     'customer_id' => $quote->customer_id,
@@ -69,34 +166,100 @@ class StripePaymentController extends Controller
                 ],
             ]);
 
-            // Update quote with payment link if the array
+            // Update quote with payment details
             $existingDetails = [];
-
             if (!empty($quote->payment_details)) {
-                $existingDetails = is_array($quote->payment_details)
-                    ? $quote->payment_details
-                    : json_decode($quote->payment_details, true);
-
-                // Fallback in case json_decode fails
-                if (!is_array($existingDetails)) {
-                    $existingDetails = [];
+                if (is_string($quote->payment_details)) {
+                    $existingDetails = json_decode($quote->payment_details, true) ?? [];
+                } else {
+                    $existingDetails = (array)$quote->payment_details;
                 }
             }
 
             $quote->update([
+                'payment_status' => 'authorized', // Now 'authorized' instead of 'paid'
                 'payment_details' => array_merge($existingDetails, [
-                    'payment_link_id'   => $paymentLink->id,
-                    'payment_link_url'  => $paymentLink->url,
-                    'product_id'        => $product->id,
-                    'price_id'          => $price->id,
-                    'updated_at'        => now(),
+                    'payment_intent_id' => $paymentIntent->id,
+                    'payment_link_url' => $session->url,
+                    'session_id' => $session->id,
+                    'product_id' => $product->id,
+                    'price_id' => $price->id,
+                    'client_secret' => $paymentIntent->client_secret,
+                    'authorized_at' => now()->toIso8601String(),
+                    'updated_at' => now()->toIso8601String(),
                 ]),
             ]);
 
-            return [
-                'payment_link' => $paymentLink->url,
-                // 'quote' => $quote,
-            ];
+            return response()->json([
+                'payment_link' => $session->url,
+                'quote' => $quote,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function capturePayment($quoteId)
+    {
+        try {
+            $quote = Quote::findOrFail($quoteId);
+
+            if ($quote->payment_status !== 'authorized') {
+                return response()->json([
+                    'error' => 'Payment not authorized or already captured',
+                    'status' => $quote->payment_status
+                ], 400);
+            }
+
+            // Get payment intent ID from quote payment details
+            $paymentDetails = $quote->payment_details;
+
+            if (is_string($paymentDetails)) {
+                $details = json_decode($paymentDetails, true);
+                $paymentIntentId = $details['payment_intent_id'] ?? null;
+            } elseif (is_array($paymentDetails)) {
+                $paymentIntentId = $paymentDetails['payment_intent_id'] ?? null;
+            } else {
+                $paymentIntentId = null;
+            }
+
+            if (!$paymentIntentId) {
+                return response()->json(['error' => 'No payment intent found'], 404);
+            }
+
+            \Stripe\Stripe::setApiKey(config('services.stripe.key'));
+
+            // Capture the payment intent
+            $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
+            $capturedIntent = $paymentIntent->capture();
+
+            // Update quote payment details
+            if (is_string($quote->payment_details)) {
+                $existingPaymentDetails = json_decode($quote->payment_details, true) ?? [];
+            } else {
+                $existingPaymentDetails = (array)$quote->payment_details;
+            }
+
+            $quote->update([
+                'payment_status' => 'paid',
+                'amount_paid' => $quote->estimated_fare,
+                'amount_due' => 0,
+                'payment_details' => array_merge($existingPaymentDetails, [
+                    'captured_at' => now()->toIso8601String(),
+                    'payment_status' => 'paid',
+                    'capture_id' => $capturedIntent->id,
+                ]),
+            ]);
+
+            // Send payment confirmation
+            Mail::to($quote->customer->user->email)
+                ->send(new PaymentConfirmation($quote));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment captured successfully',
+                'quote' => $quote,
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

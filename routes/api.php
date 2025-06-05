@@ -46,7 +46,9 @@ Route::post('quotesstore', [QuoteController::class, 'storewebsite']);
 Route::get('goods-types', [GoodsTypeController::class, 'index']);
 Route::get('transport-types', [TransportTypeController::class, 'index']);
 Route::get('/payments/create-checkout-session', [StripePaymentController::class, 'createCheckoutSession']);
-Route::post('/stripe/webhook', [StripePaymentController::class, 'handleWebhook']);
+Route::post('/quotes/{id}/capture-payment', [QuoteController::class, 'capturePayment'])->name('quotes.capture-payment');
+
+
 
 
 Route::get('/payment/success', function (Request $request) {

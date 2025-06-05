@@ -309,7 +309,7 @@ class QuoteController extends Controller
             $checkoutResponse = $stripeController->createCheckoutSession(new Request([
                 'quote_id' => $quote->id
             ]));
-            
+
             // Generate payment link
             $paymentLink = $checkoutResponse['payment_link'];
             Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
@@ -320,11 +320,47 @@ class QuoteController extends Controller
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
             ], 201);
-
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function capturePayment($id)
+    {
+        try {
+            $quote = Quote::findOrFail($id);
+
+            // Check if the status allows for payment capture
+            if ($quote->status != 'collected' && $quote->status != 'in_transit') {
+                return response()->json([
+                    'error' => 'Vehicle must be collected before payment can be captured'
+                ], 400);
+            }
+
+            // Check if payment is authorized
+            if ($quote->payment_status != 'authorized') {
+                return response()->json([
+                    'error' => 'Payment not authorized or already captured'
+                ], 400);
+            }
+
+            $stripeController = new StripePaymentController();
+            $result = $stripeController->capturePayment($quote->id);
+
+            if ($result->getData()->success) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment captured successfully',
+                    'quote' => Quote::with(['customer', 'vehicleType'])->find($quote->id)
+                ]);
+            } else {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            Log::error('Payment capture error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
