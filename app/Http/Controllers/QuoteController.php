@@ -314,11 +314,11 @@ class QuoteController extends Controller
 
             //   payment link
             
-            // Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
+            Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
                 'payment_link' => $paymentLink,
-                // 'success' => true,
+                'success' => true,
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
             ], 201);
