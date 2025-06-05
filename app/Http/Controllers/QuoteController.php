@@ -310,7 +310,7 @@ class QuoteController extends Controller
                 'quote_id' => $quote->id
             ]));
             // $responseData = $checkoutResponse->getData();
-            $paymentLink = $checkoutResponse->payment_link;
+            $paymentLink = $checkoutResponse['payment_link'] ?? null;
 
             //   payment link
             // $paymentLink = $checkoutResponse['payment_link'];
