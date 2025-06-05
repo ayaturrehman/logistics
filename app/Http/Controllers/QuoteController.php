@@ -310,14 +310,14 @@ class QuoteController extends Controller
                 'quote_id' => $quote->id
             ]));
             // $responseData = $checkoutResponse->getData();
-            // $paymentLink = $responseData->payment_link;
+            $paymentLink = $checkoutResponse->payment_link;
 
             //   payment link
             // $paymentLink = $checkoutResponse['payment_link'];
             // Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
-                'payment_link' => $checkoutResponse,
+                'payment_link' => $paymentLink,
                 // 'success' => true,
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
