@@ -35,7 +35,6 @@ class StripePaymentController extends Controller
     //         \Stripe\Stripe::setApiKey(config('services.stripe.key'));
     //         // \Stripe\Stripe::setApiKey('sk_test_51R2ZOqPt6oHLLigNFVQUYoKAPItaZPXdbYHVqSru5MqOHTWO9Q97WW4C7TFd8VTYvaPLiFmMnLeUE9Z9XHj8ZdAr001h9288Mc');
 
-
     //         // First create a product
     //         $product = \Stripe\Product::create([
     //             'name' => 'Transport Quote #' . $quote->id,
