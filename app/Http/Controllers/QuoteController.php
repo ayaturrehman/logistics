@@ -306,11 +306,11 @@ class QuoteController extends Controller
             $quote->save();
 
             $stripeController = new StripePaymentController();
-            $checkoutResponse = $stripeController->createCheckoutSession(new Request([
+            return $checkoutResponse = $stripeController->createCheckoutSession(new Request([
                 'quote_id' => $quote->id
             ]));
 
-            // Generate payment link
+            //   payment link
             $paymentLink = $checkoutResponse['payment_link'];
             Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
