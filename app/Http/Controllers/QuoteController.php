@@ -309,8 +309,8 @@ class QuoteController extends Controller
             $checkoutResponse = $stripeController->createCheckoutSession(new Request([
                 'quote_id' => $quote->id
             ]));
-            // $responseData = $checkoutResponse->getData();
-            $paymentLink = $checkoutResponse;
+            $responseData = $checkoutResponse->getData();
+            $paymentLink = $responseData;
 
             //   payment link
             // $paymentLink = $checkoutResponse['payment_link'];
