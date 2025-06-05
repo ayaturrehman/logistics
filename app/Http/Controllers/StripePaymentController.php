@@ -112,13 +112,9 @@ class StripePaymentController extends Controller
 
             $quote = Quote::where('payment_status', '!=', 'paid')->findOrFail($validated['quote_id']);
 
-            if ($quote->payment_status == 'paid') {
-                return response()->json(['error' => 'Payment already made'], 400);
-            }
-
             \Stripe\Stripe::setApiKey(config('services.stripe.key'));
 
-            // First create a product
+            // Create a Stripe Product
             $product = \Stripe\Product::create([
                 'name' => 'Transport Quote #' . $quote->id,
                 'description' => "From: {$quote->pickup_locations['text']} To: {$quote->dropoff_locations['text']}",
@@ -127,67 +123,56 @@ class StripePaymentController extends Controller
                 ]
             ]);
 
-            // Create a price
+            // Create a Price object
             $price = \Stripe\Price::create([
                 'product' => $product->id,
                 'unit_amount' => (int)($quote->estimated_fare * 100),
                 'currency' => 'gbp',
             ]);
 
-            // Create payment intent with manual capture
-            $paymentIntent = \Stripe\PaymentIntent::create([
-                'amount' => (int)($quote->estimated_fare * 100),
-                'currency' => 'gbp',
-                'automatic_payment_methods' => ['enabled' => true],
-                'capture_method' => 'manual', // This is the key - only authorize, don't capture yet
-                'metadata' => [
-                    'quote_id' => $quote->id,
-                    'customer_id' => $quote->customer_id,
-                    'estimated_fare' => $quote->estimated_fare,
-                ],
-                'description' => "Transport Quote #" . $quote->id . " - Authorization",
-            ]);
-
-            // Create checkout session with the payment intent
+            // Create Checkout Session with payment_intent_data (manual capture)
             $session = \Stripe\Checkout\Session::create([
                 'payment_method_types' => ['card'],
                 'mode' => 'payment',
-                'payment_intent' => $paymentIntent->id,
                 'line_items' => [[
                     'price' => $price->id,
                     'quantity' => 1,
                 ]],
+                'payment_intent_data' => [
+                    'capture_method' => 'manual',
+                    'metadata' => [
+                        'quote_id' => $quote->id,
+                        'customer_id' => $quote->customer_id,
+                        'estimated_fare' => $quote->estimated_fare,
+                    ],
+                    'description' => "Transport Quote #" . $quote->id . " - Authorization",
+                ],
                 'success_url' => 'https://www.a2blogistiks.uk/payment-success?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => 'https://www.a2blogistiks.uk/payment-cancel',
                 'metadata' => [
                     'quote_id' => $quote->id,
                     'customer_id' => $quote->customer_id,
-                    'estimated_fare' => $quote->estimated_fare,
                 ],
             ]);
 
-            // Update quote with payment details
+            // Save session details into the quote
             $existingDetails = [];
             if (!empty($quote->payment_details)) {
-                if (is_string($quote->payment_details)) {
-                    $existingDetails = json_decode($quote->payment_details, true) ?? [];
-                } else {
-                    $existingDetails = (array)$quote->payment_details;
-                }
+                $existingDetails = is_string($quote->payment_details)
+                    ? (json_decode($quote->payment_details, true) ?? [])
+                    : (array) $quote->payment_details;
             }
 
             $quote->update([
-                'payment_status' => 'authorized', // Now 'authorized' instead of 'paid'
-                'payment_details' => array_merge($existingDetails, [
-                    'payment_intent_id' => $paymentIntent->id,
-                    'payment_link_url' => $session->url,
+                'payment_status' => 'paid',
+                'payment_details' => json_encode(array_merge($existingDetails, [
                     'session_id' => $session->id,
+                    'payment_link_url' => $session->url,
                     'product_id' => $product->id,
                     'price_id' => $price->id,
-                    'client_secret' => $paymentIntent->client_secret,
                     'authorized_at' => now()->toIso8601String(),
                     'updated_at' => now()->toIso8601String(),
-                ]),
+                ])),
             ]);
 
             return response()->json([
@@ -198,6 +183,7 @@ class StripePaymentController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
     public function capturePayment($quoteId)
     {
