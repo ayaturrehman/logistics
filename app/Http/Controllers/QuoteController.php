@@ -388,7 +388,7 @@ class QuoteController extends Controller
             $quote = Quote::where(function ($query) use ($sessionId) {
                 // Check in JSON payment_details
                 $query->whereRaw("JSON_EXTRACT(payment_details, '$.session_id') = ?", [$sessionId])
-                    ->orWhereRaw("JSON_EXTRACT(payment_details, '$.stripe_session_id') = ?", [$sessionId]);
+                    ->orWhere('payment_details', 'like', '%' . $sessionId . '%');
             })->first();
 
             if (!$quote) {
