@@ -45,6 +45,7 @@ Route::post('quotesstore', [QuoteController::class, 'storewebsite']);
 
 Route::get('goods-types', [GoodsTypeController::class, 'index']);
 Route::get('transport-types', [TransportTypeController::class, 'index']);
+Route::post('/verify-payment', [QuoteController::class, 'updatePaymentStatusBySession']);
 Route::get('/payments/create-checkout-session', [StripePaymentController::class, 'createCheckoutSession']);
 Route::post('/quotes/{id}/capture-payment', [QuoteController::class, 'capturePayment'])->name('quotes.capture-payment');
 
