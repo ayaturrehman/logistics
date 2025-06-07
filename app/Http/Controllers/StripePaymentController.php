@@ -163,7 +163,7 @@ class StripePaymentController extends Controller
             }
 
             $quote->update([
-                'payment_status' => 'paid',
+                'payment_status' => 'pending',
                 'payment_details' => json_encode(array_merge($existingDetails, [
                     'session_id' => $session->id,
                     'payment_link_url' => $session->url,

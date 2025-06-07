@@ -313,7 +313,7 @@ class QuoteController extends Controller
             $paymentLink = $responseData->payment_link ?? null;
 
             //   payment link
-            
+
             Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
@@ -364,6 +364,58 @@ class QuoteController extends Controller
         } catch (\Exception $e) {
             Log::error('Payment capture error: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+
+    /**
+     * Update payment status based on session ID
+     * 
+     * @param string $sessionId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updatePaymentStatusBySession(Request $request)
+    {
+        try {
+            // Validate the request
+            $validated = $request->validate([
+                'session_id' => 'required|string',
+            ]);
+
+            $sessionId = $validated['session_id'];
+
+            // Find quote with this session ID in payment_details
+            $quote = Quote::where(function ($query) use ($sessionId) {
+                // Check in JSON payment_details
+                $query->whereRaw("JSON_EXTRACT(payment_details, '$.session_id') = ?", [$sessionId])
+                    ->orWhereRaw("JSON_EXTRACT(payment_details, '$.stripe_session_id') = ?", [$sessionId]);
+            })->first();
+
+            if (!$quote) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Quote not found with this session ID'
+                ], 404);
+            }
+
+        
+            // Update the quote
+            $quote->update([
+                'payment_status' => 'authorised', // or 'paid' based on your logic
+            ]);
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Quote payment status updated successfully',
+                'quote' => $quote
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating payment status by session: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }
