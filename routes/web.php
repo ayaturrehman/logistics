@@ -12,13 +12,13 @@ Route::get('/payment', function () {
 });
 
 
-// Route::get('/test-email', function () {
-//     $quote = Quote::first(); // Get a sample quote
-//     $paymentLink = "https://demo-payment.example.com/pay/" . $quote->id;
-//     Mail::to('ayatuk@yahoo.com')->send(new QuoteCreated($quote, $paymentLink));
-//     // Mail::to('ayatuk@yahoo.com')->queue(new QuoteCreated($quote, $paymentLink));
-//     dump('Email sent!');
-// });
+Route::get('/test-email', function () {
+    $quote = Quote::first(); // Get a sample quote
+    $paymentLink = "https://demo-payment.example.com/pay/" . $quote->id;
+    Mail::to('ayatuk@yahoo.com')->send(new QuoteCreated($quote, $paymentLink));
+    // Mail::to('ayatuk@yahoo.com')->queue(new QuoteCreated($quote, $paymentLink));
+    dump('Email sent!');
+});
 
 
 // Route::get('/test-queue', function () {
