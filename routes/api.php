@@ -38,6 +38,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('vehicle-rate', [VehicleTypeController::class, 'getQuotes']);
     Route::apiResource('fares', FareController::class);
     Route::apiResource('quotes', QuoteController::class);
+
+    Route::post('assigndriver', [QuoteController::class, 'assignDriverToQuote']);
+    Route::post('quotes/{quoteid}/status', [QuoteController::class, 'updateQuoteStatus']);
+
+
+
 });
 
 Route::post('vehiclerate', [VehicleTypeController::class, 'getQuotes']);

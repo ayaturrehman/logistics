@@ -112,16 +112,24 @@ class QuoteController extends Controller
             $quote->save();
 
             // Generate payment link
-            $paymentLink = "https://demo-payment.example.com/pay/" . $quote->id;
 
-            // Send email to customer
+            $stripeController = new StripePaymentController();
+            $checkoutResponse = $stripeController->createCheckoutSession(new Request([
+                'quote_id' => $quote->id
+            ]));
+
+            $responseData = $checkoutResponse->getData();
+            $paymentLink = $responseData->payment_link ?? null;
+
             Mail::to($customer->user->email)->send(new QuoteCreated($quote, $paymentLink));
 
             return response()->json([
+                'payment_link' => $responseData,
                 'success' => true,
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
             ], 201);
+
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
@@ -322,6 +330,7 @@ class QuoteController extends Controller
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
             ], 201);
+            
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
@@ -366,7 +375,6 @@ class QuoteController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
 
     /**
      * Update payment status based on session ID
@@ -416,6 +424,65 @@ class QuoteController extends Controller
                 'success' => false,
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+
+
+    // assign a driver to the quote
+    public function assignDriverToQuote(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'driver_id' => 'required|exists:drivers,id',
+            ]);
+
+            $quote = Quote::findOrFail($id);
+            $quote->driver_id = $validated['driver_id'];
+            $quote->status = 'assigned'; // Update status to 'assigned' or any other relevant status
+            $quote->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Driver assigned to quote successfully',
+                'quote' => $quote
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error assigning driver to quote: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // update the quote status
+
+    public function updateQuoteStatus(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'status' => 'required|in:pending,assigned,cancelled,in_transit,delivered,completed,failed',
+            ]);
+
+            $quote = Quote::findOrFail($id);
+            $quote->status = $validated['status'];
+            $quote->save();
+
+            // when the status is in_transit capture the payment
+            if ($quote->status === 'in_transit') {
+                $stripeController = new StripePaymentController();
+                $result = $stripeController->capturePayment($quote->id);
+
+                if (!$result->getData()->success) {
+                    return $result; // Return the error response from Stripe
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Quote status updated successfully',
+                'quote' => $quote
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating quote status: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

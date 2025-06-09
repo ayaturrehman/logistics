@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('business_id');
             $table->integer('customer_id');
             $table->integer('vehicle_type_id'); // 
+            $table->integer('driver_id')->nullable(); // Optional driver assignment
             // $table->integer('goods_type_id')->default(9); // Default to 'Vehicles'
             $table->integer('transport_type_id')->nullable()->comment('car, van, truck, etc');
             $table->decimal('estimated_distance', 8, 2); // Estimated total distance in miles

@@ -164,14 +164,14 @@ class StripePaymentController extends Controller
 
             $quote->update([
                 'payment_status' => 'pending',
-                'payment_details' => json_encode(array_merge($existingDetails, [
+                'payment_details' => array_merge($existingDetails, [
                     'session_id' => $session->id,
                     'payment_link_url' => $session->url,
                     'product_id' => $product->id,
                     'price_id' => $price->id,
                     'authorized_at' => now()->toIso8601String(),
                     'updated_at' => now()->toIso8601String(),
-                ])),
+                ]),
             ]);
 
             return response()->json([
@@ -189,47 +189,82 @@ class StripePaymentController extends Controller
         try {
             $quote = Quote::findOrFail($quoteId);
 
-            if ($quote->payment_status !== 'authorized') {
+            if ($quote->payment_status !== 'authorised' && $quote->payment_status !== 'pending') {
                 return response()->json([
                     'error' => 'Payment not authorized or already captured',
                     'status' => $quote->payment_status
                 ], 400);
             }
 
-            // Get payment intent ID from quote payment details
+            // Get payment details
             $paymentDetails = $quote->payment_details;
-
-            if (is_string($paymentDetails)) {
-                $details = json_decode($paymentDetails, true);
-                $paymentIntentId = $details['payment_intent_id'] ?? null;
-            } elseif (is_array($paymentDetails)) {
-                $paymentIntentId = $paymentDetails['payment_intent_id'] ?? null;
-            } else {
-                $paymentIntentId = null;
+            $paymentDetails = is_string($paymentDetails) ? json_decode($paymentDetails, true) : (array)$paymentDetails;
+            
+            // First try to get payment_intent_id directly
+            $paymentIntentId = $paymentDetails['payment_intent_id'] ?? null;
+            $sessionId = $paymentDetails['session_id'] ?? null;
+            
+            // If payment_intent_id is not found but session_id exists, retrieve payment intent from session
+            if (!$paymentIntentId && $sessionId) {
+                \Stripe\Stripe::setApiKey(config('services.stripe.key'));
+                
+                // Get payment intent ID from session
+                $session = \Stripe\Checkout\Session::retrieve($sessionId);
+                $paymentIntentId = $session->payment_intent;
+                
+                Log::info('Retrieved payment intent from session', [
+                    'session_id' => $sessionId,
+                    'payment_intent_id' => $paymentIntentId
+                ]);
+                
+                // Update payment_details with payment_intent_id
+                $paymentDetails['payment_intent_id'] = $paymentIntentId;
             }
 
             if (!$paymentIntentId) {
+                Log::error('No payment intent found', [
+                    'quote_id' => $quoteId,
+                    'session_id' => $sessionId
+                ]);
                 return response()->json(['error' => 'No payment intent found'], 404);
             }
 
             \Stripe\Stripe::setApiKey(config('services.stripe.key'));
 
-            // Capture the payment intent
+            // Retrieve and capture the payment intent
             $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
-            $capturedIntent = $paymentIntent->capture();
-
-            // Update quote payment details
-            if (is_string($quote->payment_details)) {
-                $existingPaymentDetails = json_decode($quote->payment_details, true) ?? [];
+            
+            // Only capture if status is requires_capture
+            if ($paymentIntent->status === 'requires_capture') {
+                $capturedIntent = $paymentIntent->capture();
+                Log::info('Payment intent captured', [
+                    'payment_intent_id' => $paymentIntentId,
+                    'status' => $capturedIntent->status
+                ]);
             } else {
-                $existingPaymentDetails = (array)$quote->payment_details;
+                Log::warning('Payment intent not in capturable state', [
+                    'payment_intent_id' => $paymentIntentId,
+                    'current_status' => $paymentIntent->status
+                ]);
+                
+                if ($paymentIntent->status === 'succeeded') {
+                    // Payment already captured, we can still update our records
+                    $capturedIntent = $paymentIntent;
+                } else {
+                    return response()->json([
+                        'error' => 'Payment intent is not in a capturable state',
+                        'status' => $paymentIntent->status
+                    ], 400);
+                }
             }
 
+            // Update quote payment details
             $quote->update([
                 'payment_status' => 'paid',
                 'amount_paid' => $quote->estimated_fare,
                 'amount_due' => 0,
-                'payment_details' => array_merge($existingPaymentDetails, [
+                'payment_details' => array_merge($paymentDetails, [
+                    'payment_intent_id' => $paymentIntentId,
                     'captured_at' => now()->toIso8601String(),
                     'payment_status' => 'paid',
                     'capture_id' => $capturedIntent->id,
@@ -246,6 +281,10 @@ class StripePaymentController extends Controller
                 'quote' => $quote,
             ]);
         } catch (\Exception $e) {
+            Log::error('Error capturing payment: ' . $e->getMessage(), [
+                'quote_id' => $quoteId,
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

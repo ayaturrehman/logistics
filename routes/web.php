@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\StripePaymentController;
+
 Route::get('/payment', function () {
     return view('welcome');
 });
@@ -21,7 +22,7 @@ Route::get('/test-email', function () {
 
 
 Route::get('/test-queue', function () {
-     $quote = Quote::latest()->first(); // Get a sample quote
+    $quote = Quote::latest()->first(); // Get a sample quote
     $stripeController = new StripePaymentController();
     $checkoutResponse = $stripeController->createCheckoutSession(new Request([
         'quote_id' => $quote->id
@@ -29,4 +30,10 @@ Route::get('/test-queue', function () {
     // echo 'api_Key'. config('services.stripe.key');
     return $responseData = $checkoutResponse;
 });
-  
+
+
+Route::get('/stripe-payment', function () {
+    $stripeController = new StripePaymentController();
+    $result = $stripeController->capturePayment(9);
+    return $result;
+});
