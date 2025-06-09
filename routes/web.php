@@ -31,9 +31,3 @@ Route::get('/test-queue', function () {
     return $responseData = $checkoutResponse;
 });
 
-
-Route::get('/stripe-payment', function () {
-    $stripeController = new StripePaymentController();
-    $result = $stripeController->capturePayment(9);
-    return $result;
-});
