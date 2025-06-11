@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayat UR Rehman - Interactive CV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="max-w-4xl mx-auto p-6 md:p-8 bg-white rounded-lg my-8" id="cv-container">
+        <!-- Header Section -->
+        <header
+            class="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-gray-200">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900">Ayat UR Rehman</h1>
+                <p class="text-xl text-indigo-600 font-medium mt-1">ACCA Part-Qualified & AAT Accountant</p>
+            </div>
+            <div class="mt-4 md:mt-0 text-sm md:text-right">
+                <p class="flex items-center mt-1">
+                    <i class="fas fa-envelope fa-fw mr-2 text-indigo-600"></i> ayatuk@yahoo.com
+                </p>
+                <p class="flex items-center mt-1">
+                    <i class="fab fa-linkedin fa-fw mr-2 text-indigo-600"></i> linkedin.com/in/ayaturrehman
+                </p>
+                <p class="flex items-center mt-1">
+                    <i class="fas fa-map-marker-alt fa-fw mr-2 text-indigo-600"></i> Doncaster, UK
+                </p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="mt-8" id="main-cv-content">
+            <!-- Professional Summary -->
+            <section>
+                <h2 class="text-2xl font-semibold text-gray-800 border-b-2 border-indigo-200 pb-2">Professional Summary
+                </h2>
+                <p class="mt-4 text-black-500 leading-relaxed">
+                    A highly motivated and detail-focused ACCA Part-Qualified Accountant with full AAT membership and a
+                    BSc in Accounting and Finance. Experienced in a fast-paced wholesale environment, managing daily
+                    high-volume transactions.
+                    <br/>
+                    Expertise in full-cycle accounting, including accounts payable/receivable,
+                    bank reconciliations, payroll for 10+ employees, and VAT preparation. Proven ability to multitask,
+                    leverage advanced software skills to improve financial reporting and analysis. Please note, I am currently on a Skilled Worker visa and require sponsorship.
+                </p>
+            </section>
+
+            <!-- Work Experience -->
+            <section class="mt-8">
+                <h2 class="text-2xl font-semibold text-gray-800 border-b-2 border-indigo-200 pb-2">Work Experience</h2>
+                <div class="mt-4">
+                    <div class="flex justify-between items-baseline">
+                        <h3 class="text-lg font-semibold text-gray-900">Accountant</h3>
+                        <p class="text-sm font-medium text-gray-600">November 2023 – Present</p>
+                    </div>
+                    <p class="text-md font-medium text-black-700">Uniworld Foods (Wholesale Cash & Carry), Doncaster, UK
+                    </p>
+                    <ul class="mt-2 list-disc list-inside text-black-700 space-y-2 leading-relaxed">
+                        <li>Handle a large number of daily transactions in a busy wholesale business.</li>
+                        <li>Manage money owed from over 150 customers, including chasing late payments.</li>
+                        <li>Pay bills to more than 50 suppliers and handle any payment enquires.</li>
+                        <li>Performs weekly and monthly bank reconciliations across multiple accounts.</li>
+                        <li>Prepares and posts month-end journals, including accruals and prepayments.</li>
+                        <li>Processes payroll for 10+ employees.</li>
+                        <li>Prepares and submits quarterly VAT returns in compliance with HMRC.</li>
+                        <li>Generates monthly P&L statements and sales analysis reports.</li>
+                        <li>Contributes to financial tasks related to multi-site projects.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Education & Qualifications -->
+            <section class="mt-8 pt-8">
+                <h2 class="text-2xl font-semibold text-gray-800 border-b-2 border-indigo-200 pb-2">Education &
+                    Qualifications</h2>
+                <div class="mt-4">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">ACCA Part-Qualified</h3>
+                        <p class="text-md font-medium text-gray-700">Association of Chartered Certified Accountants</p>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">AAT Qualified Accountant (MAAT)</h3>
+                        <p class="text-md font-medium text-gray-700">Association of Accounting Technicians</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">BSc in Accounting and Finance</h3>
+                        <p class="text-md font-medium text-gray-700">University of Bedfordshire, Luton | January 2021 –
+                            July 2023</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Skills -->
+            <section class="mt-8">
+                <h2 class="text-2xl font-semibold text-gray-800 border-b-2 border-indigo-200 pb-2">Skills</h2>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Technical & Software</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span
+                                class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">QuickBooks</span>
+                            <span
+                                class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">Xero</span>
+                            <span
+                                class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">Sage</span>
+                            <span class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">Zoho
+                                Books</span>
+                            <span
+                                class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">Capium</span>
+                            <span
+                                class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">Advanced
+                                Excel / Spreadsheets</span>
+                            <span
+                                class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">MySQL</span>
+                            <span
+                                class="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">Python</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Professional Skills</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">Critical
+                                Thinking</span>
+                            <span
+                                class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">Multi-tasking</span>
+                            <span class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">Teamwork
+                                & Collaboration</span>
+                            <span class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">Confident
+                                Communication</span>
+                            <span
+                                class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">Problem-Solving</span>
+                            <span class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">Financial
+                                Analysis</span>
+                            <span class="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">IT
+                                Proficient</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+
+
+
+    <script>
+        // --- Gemini API Call Function ---
+        async function callGemini(prompt) {
+            const apiKey = ""; // Canvas will provide the key
+            const apiUrl =
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [{
+                        text: prompt
+                    }]
+                }],
+                generationConfig: {
+                    // Capping max output tokens for safety
+                    maxOutputTokens: 2048,
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    throw new Error(`API Error ${response.status}: ${errorBody}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    // Handle cases of blocked content or unexpected response structure
+                    const reason = result.candidates ? . [0] ? .finishReason || "No content returned";
+                    const safetyRatings = JSON.stringify(result.candidates ? . [0] ? .safetyRatings || "N/A");
+                    throw new Error(
+                        `Content generation failed. Reason: ${reason}. Safety Ratings: ${safetyRatings}`);
+                }
+            } catch (error) {
+                console.error("Gemini API call failed:", error);
+                return `<div class="text-red-600 font-semibold">An error occurred. Please check the console for details.</div>`;
+            }
+        }
+
+        // --- Modal Handling ---
+        const tailorModal = document.getElementById('tailorModal');
+        const coverLetterModal = document.getElementById('coverLetterModal');
+
+        document.getElementById('openTailorModalBtn').addEventListener('click', () => tailorModal.style.display =
+            'flex');
+        document.getElementById('closeTailorModalBtn').addEventListener('click', () => tailorModal.style.display =
+            'none');
+        document.getElementById('openCoverLetterModalBtn').addEventListener('click', () => coverLetterModal.style
+            .display = 'flex');
+        document.getElementById('closeCoverLetterModalBtn').addEventListener('click', () => coverLetterModal.style
+            .display = 'none');
+
+        // Close modals if backdrop is clicked
+        window.addEventListener('click', (event) => {
+            if (event.target == tailorModal) tailorModal.style.display = 'none';
+            if (event.target == coverLetterModal) coverLetterModal.style.display = 'none';
+        });
+
+        // --- CV Tailoring Logic ---
+        const generateTailorBtn = document.getElementById('generateTailorBtn');
+        const tailorResult = document.getElementById('tailorResult');
+        const jobDescription = document.getElementById('jobDescription');
+
+        generateTailorBtn.addEventListener('click', async () => {
+            if (!jobDescription.value.trim()) {
+                tailorResult.innerHTML =
+                `<p class="text-red-500">Please paste a job description first.</p>`;
+                return;
+            }
+
+            tailorResult.innerHTML =
+                `<div class="flex items-center justify-center"><i class="fas fa-spinner fa-spin text-2xl text-indigo-600"></i><p class="ml-2">Generating suggestions...</p></div>`;
+
+            const cvContent = document.getElementById('main-cv-content').innerText;
+            const prompt = `
+                You are an expert career coach and professional resume writer. Analyze the following CV and job description. 
+                Provide specific, actionable suggestions to tailor the 'Professional Summary' and 'Work Experience' sections of the CV to better match the requirements of the job description. 
+                List the most relevant skills from the CV that should be emphasized. 
+                Format your response in clean HTML using Tailwind CSS classes for styling (e.g., <h4 class="text-lg font-semibold mb-2">, <p class="mb-2">, <ul class="list-disc list-inside space-y-1">, <li>). 
+                Do not include the <html>, <body> or full tailwind head scripts in your response. Just use the classes.
+
+                CV:
+                ---
+                ${cvContent}
+                ---
+
+                Job Description:
+                ---
+                ${jobDescription.value}
+                ---
+            `;
+
+            const resultText = await callGemini(prompt);
+            tailorResult.innerHTML = resultText;
+        });
+
+        // --- Cover Letter Logic ---
+        const generateCoverLetterBtn = document.getElementById('generateCoverLetterBtn');
+        const coverLetterResult = document.getElementById('coverLetterResult');
+        const companyNameInput = document.getElementById('companyName');
+        const jobTitleInput = document.getElementById('jobTitle');
+        const copyCoverLetterBtn = document.getElementById('copyCoverLetterBtn');
+
+        generateCoverLetterBtn.addEventListener('click', async () => {
+            const companyName = companyNameInput.value.trim();
+            const jobTitle = jobTitleInput.value.trim();
+
+            if (!companyName || !jobTitle) {
+                coverLetterResult.textContent = 'Please enter both a company name and a job title.';
+                copyCoverLetterBtn.style.display = 'none';
+                return;
+            }
+
+            coverLetterResult.innerHTML =
+                `<div class="flex items-center justify-center"><i class="fas fa-spinner fa-spin text-2xl text-gray-700"></i><p class="ml-2">Drafting your cover letter...</p></div>`;
+            copyCoverLetterBtn.style.display = 'none';
+
+            const cvContent = document.getElementById('main-cv-content').innerText;
+            const prompt = `
+                You are an expert career coach. Write a professional and compelling cover letter for an Accountant position. Use the provided CV to highlight relevant skills and experience. The letter should be addressed to the hiring manager for the role of '${jobTitle}' at '${companyName}'. The applicant's name is Ayat UR Rehman. Format the response in plain text with professional spacing, ready to be copied and pasted.
+                
+                CV Content:
+                ---
+                ${cvContent}
+                ---
+            `;
+
+            const resultText = await callGemini(prompt);
+            coverLetterResult.textContent = resultText;
+            copyCoverLetterBtn.style.display = 'inline-block';
+        });
+
+        copyCoverLetterBtn.addEventListener('click', () => {
+            const textToCopy = coverLetterResult.textContent;
+            // Using a textarea to preserve formatting for the copy command
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            copyCoverLetterBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyCoverLetterBtn.textContent = 'Copy Text';
+            }, 2000);
+        });
+
+    </script>
+</body>
+
+</html>

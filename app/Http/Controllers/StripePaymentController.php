@@ -113,19 +113,27 @@ class StripePaymentController extends Controller
 
             \Stripe\Stripe::setApiKey(config('services.stripe.key'));
 
+            // Calculate price with VAT
+            $priceWithoutVat = $quote->estimated_fare;
+            $vatAmount = $priceWithoutVat * 0.20; // Calculate 20% VAT
+            $totalPrice = $priceWithoutVat + $vatAmount;
+
             // Create a Stripe Product
             $product = \Stripe\Product::create([
                 'name' => 'Transport Quote #' . $quote->id,
                 'description' => "From: {$quote->pickup_locations['text']} To: {$quote->dropoff_locations['text']}",
                 'metadata' => [
-                    'quote_id' => $quote->id
+                    'quote_id' => $quote->id,
+                    'price_without_vat' => $priceWithoutVat,
+                    'vat_amount' => $vatAmount,
+                    'vat_rate' => '20%'
                 ]
             ]);
 
-            // Create a Price object
+            // Create a Price object with VAT included
             $price = \Stripe\Price::create([
                 'product' => $product->id,
-                'unit_amount' => (int)($quote->estimated_fare * 100),
+                'unit_amount' => (int)($totalPrice * 100),
                 'currency' => 'gbp',
             ]);
 
@@ -142,7 +150,9 @@ class StripePaymentController extends Controller
                     'metadata' => [
                         'quote_id' => $quote->id,
                         'customer_id' => $quote->customer_id,
-                        'estimated_fare' => $quote->estimated_fare,
+                        'price_without_vat' => $priceWithoutVat,
+                        'vat_amount' => $vatAmount,
+                        'total_price' => $totalPrice,
                     ],
                     'description' => "Transport Quote #" . $quote->id . " - Authorization",
                 ],
@@ -169,6 +179,10 @@ class StripePaymentController extends Controller
                     'payment_link_url' => $session->url,
                     'product_id' => $product->id,
                     'price_id' => $price->id,
+                    'price_without_vat' => $priceWithoutVat,
+                    'vat_amount' => $vatAmount,
+                    'vat_rate' => '20%',
+                    'total_price' => $totalPrice,
                     'authorized_at' => now()->toIso8601String(),
                     'updated_at' => now()->toIso8601String(),
                 ]),
@@ -177,6 +191,11 @@ class StripePaymentController extends Controller
             return response()->json([
                 'payment_link' => $session->url,
                 'quote' => $quote,
+                'price_details' => [
+                    'price_without_vat' => $priceWithoutVat,
+                    'vat_amount' => $vatAmount,
+                    'total_price' => $totalPrice,
+                ]
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
