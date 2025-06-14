@@ -34,7 +34,7 @@ class QuoteCreated extends Mailable implements ShouldQueue
     public function build()
     {
         return $this->from('noreply@zapolim.com')
-                    ->replyTo('info@company.com')
+                    ->replyTo('info@a2blogistiks.uk')
                     ->view('emails.quote_created')
                     ->with([
                         'quote' => $this->quote,
