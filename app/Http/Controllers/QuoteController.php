@@ -129,7 +129,6 @@ class QuoteController extends Controller
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
             ], 201);
-
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
@@ -330,7 +329,6 @@ class QuoteController extends Controller
                 'message' => 'Quote created successfully',
                 'quote' => $quote,
             ], 201);
-            
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
@@ -344,20 +342,13 @@ class QuoteController extends Controller
         try {
             $quote = Quote::findOrFail($id);
 
-            // Check if the status allows for payment capture
-            if ($quote->status != 'collected' && $quote->status != 'in_transit') {
-                return response()->json([
-                    'error' => 'Vehicle must be collected before payment can be captured'
-                ], 400);
-            }
-
             // Check if payment is authorized
             if ($quote->payment_status != 'authorized') {
                 return response()->json([
                     'error' => 'Payment not authorized or already captured'
                 ], 400);
             }
-            
+
 
             $stripeController = new StripePaymentController();
             $result = $stripeController->capturePayment($quote->id);
@@ -407,7 +398,7 @@ class QuoteController extends Controller
                 ], 404);
             }
 
-        
+
             // Update the quote
             $quote->update([
                 'payment_status' => 'authorised', // or 'paid' based on your logic
@@ -439,7 +430,7 @@ class QuoteController extends Controller
 
             $quote = Quote::findOrFail($id);
             $quote->driver_id = $validated['driver_id'];
-            $quote->status = 'assigned'; // Update status to 'assigned' or any other relevant status
+            // $quote->status = 'assigned'; // Update status to 'assigned' or any other relevant status
             $quote->save();
 
             return response()->json([
@@ -462,11 +453,20 @@ class QuoteController extends Controller
                 'status' => 'required|in:pending,confirmed,assigned,cancelled,in_transit,delivered,completed,failed',
             ]);
 
+            if ($validated['status'] != 'cancelled' || $validated['status'] != 'failed') {
+                $quote = Quote::findOrFail($id);
+                if ($quote->payment_status !== 'paid' && $quote->payment_status !== 'authorised') {
+                    return response()->json([
+                        'error' => 'Payment must be completed before confirming the quote.'
+                    ], 400);
+                }
+            }
+
             $quote = Quote::findOrFail($id);
             $quote->status = $validated['status'];
             $quote->save();
 
-            if ($quote->status === 'confirmed') {
+            if ($validated['status'] === 'confirmed') {
                 $stripeController = new StripePaymentController();
                 $result = $stripeController->capturePayment($quote->id);
 
@@ -474,6 +474,7 @@ class QuoteController extends Controller
                     return $result; // Return the error response from Stripe
                 }
             }
+
 
             return response()->json([
                 'success' => true,
