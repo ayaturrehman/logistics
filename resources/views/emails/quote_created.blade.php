@@ -293,7 +293,7 @@
             <!-- You can add your logo here -->
             <!-- <img src="https://a2blogistiks.uk/logo.png" alt="A2B Logistiks" class="logo"> -->
             <h1>Your Transport Quote</h1>
-            <p>Quote #{{ $quote->id }}</p>
+            <p>Quote # {{ (int) $quote->id + 1000 }}</p>
         </div>
 
         <div class="content">

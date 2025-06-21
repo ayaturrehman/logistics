@@ -457,7 +457,7 @@ class QuoteController extends Controller
                 $quote = Quote::findOrFail($id);
                 if ($quote->payment_status !== 'paid' && $quote->payment_status !== 'authorised') {
                     return response()->json([
-                        'error' => 'Payment must be completed before confirming the quote.'
+                        'error' => 'Payment must be authorise before confirming the quote.'
                     ], 400);
                 }
             }

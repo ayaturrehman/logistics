@@ -27,7 +27,7 @@ class PaymentConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Payment Confirmation - Quote #' . $this->quote->id,
+            subject: 'Payment Confirmation',
         );
     }
 
@@ -50,4 +50,5 @@ class PaymentConfirmation extends Mailable
     {
         return [];
     }
+    
 }
