@@ -357,6 +357,7 @@ class QuoteController extends Controller
                     'error' => 'Payment not authorized or already captured'
                 ], 400);
             }
+            
 
             $stripeController = new StripePaymentController();
             $result = $stripeController->capturePayment($quote->id);
@@ -458,15 +459,14 @@ class QuoteController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|in:pending,assigned,cancelled,in_transit,delivered,completed,failed',
+                'status' => 'required|in:pending,confirmed,assigned,cancelled,in_transit,delivered,completed,failed',
             ]);
 
             $quote = Quote::findOrFail($id);
             $quote->status = $validated['status'];
             $quote->save();
 
-            // when the status is in_transit capture the payment
-            if ($quote->status === 'in_transit') {
+            if ($quote->status === 'confirmed') {
                 $stripeController = new StripePaymentController();
                 $result = $stripeController->capturePayment($quote->id);
 
