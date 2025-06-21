@@ -471,7 +471,7 @@
             <p>
                 To proceed with your booking, please review the quote details and make a payment by clicking the button
                 below.</br>
-                Once the payment is authorised, we will charge you upon confirmation. Transport will be scheduled
+                Once the payment is authorised, we will charge you once we confirm your booking. Transport will be scheduled
                 according to the available dates you have provided.
             </p>
             
