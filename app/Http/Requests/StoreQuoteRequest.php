@@ -74,9 +74,9 @@ class StoreQuoteRequest extends FormRequest
             'vehicle_available_to'              => 'nullable|date|after_or_equal:vehicle_available_from',
             
             // Vehicle details
-            'vehicle_make' => 'nullable|string|max:255',
-            'vehicle_model' => 'nullable|string|max:255',
-            'number_plate' => 'nullable|string|max:255',
+            'vehicle_make' => 'required|string|max:255',
+            'vehicle_model' => 'required|string|max:255',
+            'number_plate' => 'required|string|max:255',
             'gearbox' => 'nullable|string|max:255',
             'seating_capacity' => 'nullable|integer|min:1',
             'comments' => 'nullable|string',

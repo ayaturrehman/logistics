@@ -346,7 +346,7 @@
                 </div>
                 
                 <div class="detail-row">
-                    <span class="detail-label">Vehicle Available To:</span>
+                    <span class="detail-label">Latest delivery date:</span>
                     <span class="detail-value">
                         {{ $quote->vehicle_available_to ? \Carbon\Carbon::parse($quote->vehicle_available_to)->format('M d, Y') : 'Not specified' }}
                     </span>
@@ -427,18 +427,17 @@
             @endif
             
             <p>To proceed with your booking, please review the quote details and make a payment by clicking the button below. Upon payment, your vehicle transport will be scheduled according to the available dates provided.</p>
-            
             <div class="cta-container">
                 <a href="{{ $paymentLink }}" class="cta-button">Pay Now</a>
             </div>
             
             <p>If you have any questions or need to make changes to your quote, please don't hesitate to contact our customer support team at <a href="mailto:info@a2blogistiks.uk">info@a2blogistiks.uk</a> or call us at <a href="tel:+447398229432">+44 7398 229432</a>.</p>
             
-            <p>Thank you for choosing A2B Logistiks!</p>
+            <p>Thank you for choosing A2B Logistiks LTD</p>
         </div>
         
         <div class="footer">
-            <p>© {{ date('Y') }} A2B Logistiks UK. All rights reserved.</p>
+            <p>© {{ date('Y') }} A2B Logistiks LTD. All rights reserved.</p>
             <p>This is an automated email, please do not reply directly.</p>
             
             {{-- <div class="social-links">
