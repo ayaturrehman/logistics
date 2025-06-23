@@ -120,7 +120,7 @@ class VehicleTypeController extends Controller
                     'per_mile_rate' => $vehicle->fare->per_mile_rate,
                     'base_fare' => $vehicle->fare->base_fare,
                     'vehicle_type' => $vehicle->name,
-                    'total_fare' => round($totalFare, 2),
+                    'total_fare' => number_format($totalFare, 2, '.', ''),
                 ];
             }
         }
